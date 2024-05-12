@@ -1,0 +1,7 @@
+# @Trello.Api_HostAddress = http://localhost:5089
+
+###GET {{Trello.Api_HostAddress}}/api/weatherforecast/
+###Accept: application/json
+
+###
+
