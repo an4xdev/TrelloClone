@@ -1,3 +1,6 @@
+using Blazorise;
+using Blazorise.Bootstrap5;
+using Blazorise.Icons.FontAwesome;
 using Trello.UI.Components;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,7 +14,13 @@ builder.Services.AddScoped(http => new HttpClient()
     BaseAddress = new Uri(builder.Configuration.GetSection("BaseUri").Value!)
 });
 
-
+builder.Services
+.AddBlazorise(options =>
+{
+    options.Immediate = true;
+})
+.AddBootstrap5Providers()
+.AddFontAwesomeIcons();
 
 var app = builder.Build();
 

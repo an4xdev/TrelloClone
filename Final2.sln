@@ -3,13 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.9.34728.123
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Trello.Api", "Trello.Api\Trello.Api.csproj", "{587D8DB9-4813-49B1-8986-1CEA5B926770}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Trello.Api", "Trello.Api\Trello.Api.csproj", "{587D8DB9-4813-49B1-8986-1CEA5B926770}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Trello.UI", "Trello.UI\Trello.UI\Trello.UI.csproj", "{08CBBC89-4D47-4392-9E77-827A3A735033}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Trello.UI", "Trello.UI\Trello.UI\Trello.UI.csproj", "{08CBBC89-4D47-4392-9E77-827A3A735033}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Trello.UI.Client", "Trello.UI\Trello.UI.Client\Trello.UI.Client.csproj", "{105101B7-D8E1-4E36-B1BA-1CF0F6AB49C0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Trello.UI.Client", "Trello.UI\Trello.UI.Client\Trello.UI.Client.csproj", "{105101B7-D8E1-4E36-B1BA-1CF0F6AB49C0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Trello.Shared", "Trello.Shared\Trello.Shared.csproj", "{1C350AF5-08D4-40D7-AFE2-75837ADEA140}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Trello.Shared", "Trello.Shared\Trello.Shared.csproj", "{1C350AF5-08D4-40D7-AFE2-75837ADEA140}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

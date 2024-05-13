@@ -9,6 +9,8 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Trello.Shared\Trello.Shared.csproj" />
     <ProjectReference Include="..\Trello.UI.Client\Trello.UI.Client.csproj" />
+    <PackageReference Include="Blazorise.Bootstrap5" Version="1.5.2" />
+    <PackageReference Include="Blazorise.Icons.FontAwesome" Version="1.5.2" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="8.0.4" />
   </ItemGroup>
 
