@@ -42,7 +42,6 @@ app.UseStaticFiles();
 app.UseAntiforgery();
 
 
-
 app.MapRazorComponents<App>()
     .AddInteractiveWebAssemblyRenderMode()
     .AddAdditionalAssemblies(typeof(Trello.UI.Client._Imports).Assembly);

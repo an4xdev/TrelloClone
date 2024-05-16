@@ -1,0 +1,150 @@
+﻿@inject HttpClient httpClient
+@rendermode @(new InteractiveWebAssemblyRenderMode(false))
+@using System.IO
+<Modal @ref="modalRef">
+    <ModalContent Centered>
+        <ModalHeader>
+            <ModalTitle>Employee edit</ModalTitle>
+        </ModalHeader>
+        <ModalBody>
+            <Field>
+                <FieldLabel>username</FieldLabel>
+                <TextEdit Placeholder="Enter username..." @bind-Text="@model.UserName"/>
+            </Field>
+            <Field>
+                <FieldLabel>profile picture</FieldLabel>
+                <FileEdit Changed="@OnChanged" Written="@OnWritten" Progressed="@OnProgressed" Filter="image/*" />
+            </Field>
+        </ModalBody>
+        <ModalFooter>
+            <Button Color="Color.Primary" Clicked="@SendData">Save Changes</Button>
+        </ModalFooter>
+    </ModalContent>
+</Modal>
+
+<Toaster Placement="ToasterPlacement.TopEnd">
+    <Toast @bind-Visible="@fileToastVisible" Autohide>
+        <ToastHeader>
+            <Strong Margin="Margin.IsAuto.FromEnd">Enter file</Strong>
+            <CloseButton />
+        </ToastHeader>
+        <ToastBody>
+            You needs to provide profile picture
+        </ToastBody>
+    </Toast>
+</Toaster>
+
+<Toaster Placement="ToasterPlacement.TopEnd">
+    <Toast @bind-Visible="@userToastVisible" Autohide>
+        <ToastHeader>
+            <Strong Margin="Margin.IsAuto.FromEnd">Enter user name</Strong>
+            <CloseButton />
+        </ToastHeader>
+        <ToastBody>
+            You needs to provide user name
+        </ToastBody>
+    </Toast>
+</Toaster>
+
+<Toaster Placement="ToasterPlacement.TopEnd">
+    <Toast @bind-Visible="@errorToastVisible" Autohide>
+        <ToastHeader>
+            <Strong Margin="Margin.IsAuto.FromEnd">Error</Strong>
+            <CloseButton />
+        </ToastHeader>
+        <ToastBody>
+            Some error
+        </ToastBody>
+    </Toast>
+</Toaster>
+
+@code {
+    private AddUser model = new();
+
+    private Modal modalRef;
+
+    bool pictureLoaded = false;
+    bool fileToastVisible = false;
+    bool userToastVisible = false;
+    bool errorToastVisible = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        bool response = await httpClient.GetFromJsonAsync<bool>("/api/users");
+
+        if (!response)
+        {
+            await modalRef.Show();
+        }
+    }
+
+    private async Task SendData()
+    {
+        if(!pictureLoaded)
+        {
+            fileToastVisible = true;
+            return;
+        }
+        if(model.UserName.Equals(string.Empty))
+        {
+            userToastVisible = true;
+            return;
+        }
+
+        var response = await httpClient.PostAsJsonAsync<AddUser>("/api/users", model);
+
+        bool success = await response.Content.ReadFromJsonAsync<bool>();
+
+        if(success)
+        {
+            await modalRef.Hide();
+        }
+        else
+        {
+            errorToastVisible = true;
+        }
+
+    }
+
+    async Task OnChanged(FileChangedEventArgs e)
+    {
+        try
+        {
+            var file = e.Files.FirstOrDefault();
+            if (file == null)
+            {
+                return;
+            }
+
+            using (MemoryStream result = new MemoryStream(20000000))
+            {
+                await file.OpenReadStream(20000000).CopyToAsync(result);
+                var image = result.ToArray();
+                model.ProfilePictureData = Convert.ToBase64String(image);
+            }
+        }
+        catch (Exception exc)
+        {
+            Console.WriteLine(exc.Message);
+        }
+        finally
+        {
+            this.StateHasChanged();
+        }
+    }
+
+    void OnWritten(FileWrittenEventArgs e)
+    {
+        Console.WriteLine($"File: {e.File.Name} Position: {e.Position} Type: {e.File.Type}");
+        pictureLoaded = true;
+        model.ProfilePictureExtension = e.File.Name.Split(".")[1];
+        
+    }
+
+    void OnProgressed(FileProgressedEventArgs e)
+    {
+        Console.WriteLine($"File: {e.File.Name} Progress: {e.Percentage}");
+    }
+
+}
