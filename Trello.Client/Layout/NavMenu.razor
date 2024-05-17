@@ -1,8 +1,12 @@
-﻿<Bar Breakpoint="Breakpoint.Desktop"
+﻿@inject EventAggregator EventAggregator
+@inject IHttpClientFactory clientFactory
+@inject CurrentUser currentUser
+
+<Bar Breakpoint="Breakpoint.Desktop"
      Background="Background.Dark"
      ThemeContrast="ThemeContrast.Dark">
-    <BarBrand>
-        Brandname
+    <BarBrand Margin="Margin.Is3">
+        Trello Clone
     </BarBrand>
     <BarToggler />
     <BarMenu>
@@ -28,10 +32,51 @@
             </BarItem>
         </BarStart>
         <BarEnd>
-            <BarItem>
-                <Button Color="Color.Primary">Sign up</Button>
-                <Button Color="Color.Secondary">Log in</Button>
+            <BarItem Margin="Margin.Is3">
+                <Text TextColor="TextColor.White" CopyToClipboard="false">Hello: @UserName</Text>
+                <Image Source="@ProfilePicture" Height="Height.Px(50)" Width="Width.Px(50)"/>
             </BarItem>
         </BarEnd>
     </BarMenu>
 </Bar>
+
+@code
+{
+    private string UserName { get; set; }
+
+    private string ProfilePicture { get; set; }
+
+    [Inject] IToastService toastService { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        EventAggregator.Subscribe("AddedUser", HandleActionCompleted);
+        var httpClient = clientFactory.CreateClient("API");
+        var response = await httpClient.GetFromJsonAsync<UserData>("/api/users/user");
+
+        if(response != null)
+        {
+            if (response.UserName.Equals(string.Empty))
+            {
+                UserName = "Anonymous";
+            }
+            else
+            {
+                currentUser.UserName = response.UserName;
+                UserName = currentUser.UserName;
+                currentUser.ImageData = $"data:/{response.ProfilePictureExtension};base64,{response.ProfilePictureData}";
+                ProfilePicture = currentUser.ImageData;
+            }
+        }
+
+        
+    }
+
+    Task HandleActionCompleted()
+    {
+        UserName = currentUser.UserName;
+        StateHasChanged();
+
+        return Task.CompletedTask;
+    }
+}

@@ -17,7 +17,7 @@ namespace Trello.Api.Controllers
         }
 
         [HttpPost]
-        public async Task<bool> AddUser(AddUser user)
+        public async Task<bool> AddUser(UserData user)
         {
 
             Console.WriteLine(user.UserName);
@@ -48,6 +48,35 @@ namespace Trello.Api.Controllers
             }
 
             return await Task.FromResult(result);
+        }
+
+        [HttpGet("user")]
+        public async Task<UserData> GetUserData()
+        {
+
+            var user = await context.Users.FirstOrDefaultAsync();
+
+            UserData response = new()
+            {
+                UserName = string.Empty,
+                ProfilePictureData = string.Empty,
+                ProfilePictureExtension = string.Empty,
+            };
+            if (user != null)
+            {
+
+                byte[] photoData = System.IO.File.ReadAllBytes(user.ProfilePicture);
+                string photo = Convert.ToBase64String(photoData);
+                string ext = Path.GetExtension(user.ProfilePicture).Split(".")[1];
+                response.ProfilePictureData = photo;
+                response.ProfilePictureExtension = ext;
+                response.UserName = user.UserName;
+
+
+            }
+
+            return await Task.FromResult(response);
+
         }
     }
 }

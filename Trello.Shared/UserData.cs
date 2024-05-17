@@ -1,6 +1,6 @@
 ﻿namespace Trello.Shared
 {
-    public class AddUser
+    public class UserData
     {
         public string UserName { get; set; } = string.Empty;
 

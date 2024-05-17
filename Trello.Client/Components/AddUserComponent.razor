@@ -1,19 +1,22 @@
 ﻿@using System.IO
-@using Trello.Shared
-@inject IHttpClientFactory clientFactory;
-<Modal @ref="modalRef">
+@inject IHttpClientFactory clientFactory
+@inject CurrentUser currentUser
+
+@inject EventAggregator EventAggregator
+
+<Modal @ref="modalRef" Closing="OnModalClosing">
     <ModalContent Centered>
         <ModalHeader>
-            <ModalTitle>Employee edit</ModalTitle>
+            <ModalTitle>Create profile</ModalTitle>
         </ModalHeader>
         <ModalBody>
             <Field>
-                <FieldLabel>username</FieldLabel>
+                <FieldLabel>Username</FieldLabel>
                 <TextEdit Placeholder="Enter username..." @bind-Text="@model.UserName"/>
             </Field>
             <Field>
-                <FieldLabel>profile picture</FieldLabel>
-                <FileEdit Changed="@OnChanged" Ended="OnEnded" Filter="image/*" />
+                <FieldLabel>Profile picture</FieldLabel>
+                <FilePicker Upload="OnFileUpload" Filter="image/*" DisableProgressReport="true"/>
             </Field>
         </ModalBody>
         <ModalFooter>
@@ -22,53 +25,17 @@
     </ModalContent>
 </Modal>
 
-<Snackbar @ref="fileSnackbar" Color="SnackbarColor.Danger" Location="SnackbarLocation.TopEnd">
-    <SnackbarHeader>
-        Enter file
-    </SnackbarHeader>
-    <SnackbarBody>
-        You needs to provide profile picture
-    </SnackbarBody>
-</Snackbar>
-
-<Snackbar @ref="userSnackbar" Color="SnackbarColor.Danger" Location="SnackbarLocation.TopEnd">
-    <SnackbarHeader>
-        Enter user name
-    </SnackbarHeader>
-    <SnackbarBody>
-        You needs to provide user name
-    </SnackbarBody>
-</Snackbar>
-
-<Snackbar @ref="errorSnackbar" Color="SnackbarColor.Danger" Location="SnackbarLocation.TopEnd">
-    <SnackbarHeader>
-        Error
-    </SnackbarHeader>
-    <SnackbarBody>
-        Some error
-    </SnackbarBody>
-</Snackbar>
-
-<Snackbar @ref="successSnackbar" Color="SnackbarColor.Success" Location="SnackbarLocation.TopEnd">
-    <SnackbarHeader>
-        Success
-    </SnackbarHeader>
-    <SnackbarBody>
-        Successfully added user
-    </SnackbarBody>
-</Snackbar>
-
 @code {
-    private Snackbar fileSnackbar;
-    private Snackbar userSnackbar;
-    private Snackbar errorSnackbar;
-    private Snackbar successSnackbar;
 
-    private AddUser model = new();
+    private UserData model = new();
 
     private Modal modalRef;
 
     bool pictureLoaded = false;
+
+    bool addedToDB = false;
+
+    [Inject] IToastService toastService { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -85,47 +52,48 @@
     {
         if(!pictureLoaded)
         {
-            await fileSnackbar.Show();
+            await toastService.Error("You needs to provide profile picture", "Enter file");
             return;
         }
         if(model.UserName.Equals(string.Empty))
         {
-            await userSnackbar.Show();
+            await toastService.Error("You needs to provide user name", "Enter user name");
             return;
         }
         var httpClient = clientFactory.CreateClient("API");
 
-        var response = await httpClient.PostAsJsonAsync<AddUser>("/api/users", model);
+        var response = await httpClient.PostAsJsonAsync<UserData>("/api/users", model);
 
         bool success = await response.Content.ReadFromJsonAsync<bool>();
 
         if(success)
         {
+            addedToDB = true;
+            await toastService.Success("Successfully added user", "Success");
             await modalRef.Hide();
-            await successSnackbar.Show();
+
+            currentUser.UserName = model.UserName;
+
+            EventAggregator.Publish("AddedUser");
         }
         else
         {
-            await errorSnackbar.Show();
+            await toastService.Error("Some error", "Error");
         }
 
     }
 
-    async Task OnChanged(FileChangedEventArgs e)
+    async Task OnFileUpload(FileUploadEventArgs e)
     {
         try
         {
-            var file = e.Files.FirstOrDefault();
-            if (file == null)
+            using (MemoryStream result = new MemoryStream())
             {
-                return;
-            }
-
-            using (MemoryStream result = new MemoryStream((int)file.Size))
-            {
-                await file.OpenReadStream(file.Size).CopyToAsync(result);
+                await e.File.OpenReadStream(long.MaxValue).CopyToAsync(result);
                 var image = result.ToArray();
                 model.ProfilePictureData = Convert.ToBase64String(image);
+                model.ProfilePictureExtension = e.File.Name.Split(".")[1];
+                pictureLoaded = true;
             }
         }
         catch (Exception exc)
@@ -134,14 +102,18 @@
         }
         finally
         {
-            // this.StateHasChanged();
+            this.StateHasChanged();
         }
     }
 
-    void OnEnded(FileEndedEventArgs e)
+    private async Task OnModalClosing(ModalClosingEventArgs e)
     {
-        pictureLoaded = true;
-        model.ProfilePictureExtension = e.File.Name.Split(".")[1];
+        e.Cancel = !addedToDB || e.CloseReason != CloseReason.UserClosing;
+
+        if(e.Cancel)
+        {
+            await toastService.Error("You needs to register to continue using application", "Complete registration");
+        }
     }
 
 }
