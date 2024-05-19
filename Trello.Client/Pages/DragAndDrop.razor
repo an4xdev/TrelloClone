@@ -1,4 +1,5 @@
 ﻿@page "/drag"
+@inject IHttpClientFactory clientFactory
 <DropContainer TItem="DropItem" Items="@items" ItemsFilter="@((item, dropZone) => item.Group == dropZone)" ItemDropped="@ItemDropped" Flex="Flex.Wrap.Grow.Is1">
     <ChildContent>
         @for (int i = 1; i < 4; i++)
@@ -39,5 +40,19 @@
     {
         dropItem.Item.Group = dropItem.DropZoneName;
         return Task.CompletedTask;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var httpClient = clientFactory.CreateClient("API");
+
+        var response = await httpClient.GetFromJsonAsync<TemplateWithCollumns>("/api/templates");
+
+        Console.WriteLine(response.Template.Name);
+
+        foreach(Trello.Shared.Column c in response.Columns)
+        {
+            Console.WriteLine(c.Name);
+        }
     }
 }

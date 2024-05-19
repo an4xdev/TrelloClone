@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Trello.Api.Database;
 
@@ -11,9 +12,11 @@ using Trello.Api.Database;
 namespace Trello.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240519173105_ColumnTemplatesData")]
+    partial class ColumnTemplatesData
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -22,26 +25,7 @@ namespace Trello.Api.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Trello.Api.Models.User", b =>
-                {
-                    b.Property<Guid>("ID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("ProfilePicture")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("UserName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("ID");
-
-                    b.ToTable("Users");
-                });
-
-            modelBuilder.Entity("Trello.Shared.Column", b =>
+            modelBuilder.Entity("Trello.Api.Models.Column", b =>
                 {
                     b.Property<int>("ColumnID")
                         .ValueGeneratedOnAdd()
@@ -75,7 +59,7 @@ namespace Trello.Api.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Trello.Shared.ColumnTemplate", b =>
+            modelBuilder.Entity("Trello.Api.Models.ColumnTemplate", b =>
                 {
                     b.Property<int>("ID")
                         .ValueGeneratedOnAdd()
@@ -114,51 +98,7 @@ namespace Trello.Api.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Trello.Shared.Item", b =>
-                {
-                    b.Property<int>("ItemID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ItemID"));
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("PID")
-                        .HasColumnType("int");
-
-                    b.HasKey("ItemID");
-
-                    b.ToTable("Items");
-                });
-
-            modelBuilder.Entity("Trello.Shared.Project", b =>
-                {
-                    b.Property<int>("ProjectID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ProjectID"));
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("TID")
-                        .HasColumnType("int");
-
-                    b.HasKey("ProjectID");
-
-                    b.ToTable("Projects");
-                });
-
-            modelBuilder.Entity("Trello.Shared.Template", b =>
+            modelBuilder.Entity("Trello.Api.Models.Template", b =>
                 {
                     b.Property<int>("TemplateID")
                         .ValueGeneratedOnAdd()
@@ -180,6 +120,25 @@ namespace Trello.Api.Migrations
                             TemplateID = 1,
                             Name = "Default"
                         });
+                });
+
+            modelBuilder.Entity("Trello.Api.Models.User", b =>
+                {
+                    b.Property<Guid>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ProfilePicture")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("ID");
+
+                    b.ToTable("Users");
                 });
 #pragma warning restore 612, 618
         }
