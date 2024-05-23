@@ -20,11 +20,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Trello.Shared\Trello.Shared.csproj" />
+    <Folder Include="Uploads\" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Uploads\" />
+    <ProjectReference Include="..\Trello.Shared\Trello.Shared.csproj" />
   </ItemGroup>
 
 </Project>

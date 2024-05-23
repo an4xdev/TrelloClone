@@ -52,7 +52,7 @@
     {
         EventAggregator.Subscribe("AddedUser", HandleActionCompleted);
         var httpClient = clientFactory.CreateClient("API");
-        var response = await httpClient.GetFromJsonAsync<UserData>("/api/users/user");
+        var response = await httpClient.GetFromJsonAsync<UserDataDTO>("/api/users/user");
 
         UserName = "Anonymous";
         if(response != null)

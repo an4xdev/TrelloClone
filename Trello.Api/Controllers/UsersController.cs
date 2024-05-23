@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Trello.Api.Database;
 using Trello.Api.Models;
-using Trello.Shared;
+using Trello.Shared.DTOs;
 namespace Trello.Api.Controllers
 {
     [ApiController]
@@ -17,7 +17,7 @@ namespace Trello.Api.Controllers
         }
 
         [HttpPost]
-        public async Task<bool> AddUser(UserData user)
+        public async Task<bool> AddUser(UserDataDTO user)
         {
 
             Console.WriteLine(user.UserName);
@@ -51,12 +51,12 @@ namespace Trello.Api.Controllers
         }
 
         [HttpGet("user")]
-        public async Task<UserData> GetUserData()
+        public async Task<UserDataDTO> GetUserData()
         {
 
             var user = await context.Users.FirstOrDefaultAsync();
 
-            UserData response = new()
+            UserDataDTO response = new()
             {
                 UserName = string.Empty,
                 ProfilePictureData = string.Empty,

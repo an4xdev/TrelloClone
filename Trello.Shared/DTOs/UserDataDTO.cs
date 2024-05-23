@@ -1,6 +1,6 @@
-﻿namespace Trello.Shared
+﻿namespace Trello.Shared.DTOs
 {
-    public class UserData
+    public class UserDataDTO
     {
         public string UserName { get; set; } = string.Empty;
 

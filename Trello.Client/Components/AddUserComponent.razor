@@ -27,7 +27,7 @@
 
 @code {
 
-    private UserData model = new();
+    private UserDataDTO model = new();
 
     private Modal modalRef;
 
@@ -62,7 +62,7 @@
         }
         var httpClient = clientFactory.CreateClient("API");
 
-        var response = await httpClient.PostAsJsonAsync<UserData>("/api/users", model);
+        var response = await httpClient.PostAsJsonAsync<UserDataDTO>("/api/users", model);
 
         bool success = await response.Content.ReadFromJsonAsync<bool>();
 

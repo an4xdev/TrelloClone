@@ -46,13 +46,14 @@
     {
         var httpClient = clientFactory.CreateClient("API");
 
-        var response = await httpClient.GetFromJsonAsync<TemplateWithCollumns>("/api/templates");
+        var response = await httpClient.GetFromJsonAsync<ProjectDTO>("/api/project");
 
+        Console.WriteLine(response.Name);
         Console.WriteLine(response.Template.Name);
-
-        foreach(Trello.Shared.Column c in response.Columns)
+        foreach(var item in response.Items)
         {
-            Console.WriteLine(c.Name);
+            Console.WriteLine(item.Name);
         }
+
     }
 }
