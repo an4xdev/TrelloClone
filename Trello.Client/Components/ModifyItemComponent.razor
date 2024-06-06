@@ -1,0 +1,39 @@
+﻿<ModalHeader>
+    <ModalTitle>
+        Edit: @Item.Name
+    </ModalTitle>
+    <CloseButton />
+</ModalHeader>
+<ModalBody>
+    <Field Horizontal>
+        <FieldLabel ColumnSize="ColumnSize.IsFull.Is3.OnDesktop">
+            Name
+        </FieldLabel>
+        <FieldBody ColumnSize="ColumnSize.IsFull.OnTablet.Is9.OnDesktop">
+            <TextEdit @bind-Text="Change.Name"/>
+        </FieldBody>
+    </Field>
+    <Field Horizontal>
+        <FieldLabel ColumnSize="ColumnSize.IsFull.Is3.OnDesktop">
+            Description
+        </FieldLabel>
+        <FieldBody ColumnSize="ColumnSize.IsFull.OnTablet.Is9.OnDesktop">
+            <TextEdit @bind-Text="Change.Description" />
+        </FieldBody>
+    </Field>
+</ModalBody>
+<ModalFooter>
+    <Button Color="Color.Success " Clicked="ModalService.Hide">Confirm</Button>
+    <Button Color="Color.Secondary" Clicked="ModalService.Hide">Cancel</Button>
+</ModalFooter>
+@code {
+    [Inject] public IModalService ModalService { get; set; }
+    [Parameter] public DropItem Item { get; set; }
+    private DropItem Change;
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        Change = new(Item);
+    }
+}

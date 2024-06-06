@@ -27,4 +27,6 @@ builder.Services.AddSingleton<EventAggregator>();
 
 builder.Services.AddSingleton<CurrentUser>();
 
+builder.Services.AddSingleton<Utils>();
+
 await builder.Build().RunAsync();

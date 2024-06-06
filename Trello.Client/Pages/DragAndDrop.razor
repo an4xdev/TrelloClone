@@ -1,40 +1,60 @@
 ﻿@page "/drag"
 @inject IHttpClientFactory clientFactory
-<DropContainer TItem="DropItem" Items="@items" ItemsFilter="@((item, dropZone) => item.Group == dropZone)" ItemDropped="@ItemDropped" Flex="Flex.Wrap.Grow.Is1">
-    <ChildContent>
-        @for (int i = 1; i < 4; i++)
-        {
-            var dropzone = i.ToString();
+@if(items == null || items.Count == 0 || columns == null || columns.Count == 0)
+{
+    <p>Loading ...</p>
+}
+else
+{
+    <Div>
+        <Heading Size="HeadingSize.Is3" Margin="Margin.Is3.FromBottom.Is3.FromStart">Project: @ProjectName</Heading>
+    </Div>
+    <DropContainer TItem="DropItem" Items="@items" ItemDropped="@ItemDropped" Flex="Flex.Wrap.Grow.Is1.AlignItems.Center" ItemsFilter="@((item, dropZone) => item.Group == dropZone)">
+        <ChildContent>
 
-            <DropZone TItem="DropItem" Name="@dropzone" AllowReorder Padding="Padding.Is3" Margin="Margin.Is3" Flex="Flex.Grow.Is1">
-                <Heading Size="HeadingSize.Is4" Margin="Margin.Is3.FromBottom">Drop Zone @dropzone</Heading>
-            </DropZone>
-        }
-    </ChildContent>
-    <ItemTemplate>
-        <Card Shadow="Shadow.Default" Margin="Margin.Is3.OnY">
-            <CardBody>
-                @context.Name
-            </CardBody>
-        </Card>
-    </ItemTemplate>
-</DropContainer>
+            @foreach(var c in columns)
+            {
+                <Div Style="flex-grow:1" Flex="Flex.Column.AlignItems.Center">
+                    <Div Width="Width.Is100">
+                        <DropZone TItem="DropItem" Name="@c" AllowReorder Padding="Padding.Is3" Margin="Margin.Is3" Flex="Flex.Grow.Is1" Shadow="Shadow.Large">
+                            <Heading Size="HeadingSize.Is4" Margin="Margin.Is3.FromBottom">@c</Heading>
+                        </DropZone>
+                    </Div>
+                    <Div Display="Display.Flex">
+                        <Button Color="Color.Success"><Icon Name="IconName.Add" /></Button>
+                    </Div>
+                </Div>
+            }
+            <Div>
+                <Tooltip Text="Add Column">
+                    <Button Color="Color.Success" Clicked="ShowAddColumnModal"><Icon Name="IconName.Add"/></Button>
+                </Tooltip>
+            </Div>
+        </ChildContent>
+        <ItemTemplate>
+            <Div Flex="Flex.AlignItems.Center.JustifyContent.Between" Shadow="Shadow.Large" Padding="Padding.Is3">
+                <Div Padding="Padding.Is2" Margin="Margin.Is2.FromEnd">
+                    <Text>@context.Name</Text>
+                </Div>
+                <Div>
+                    <Button Color="Color.Primary" Clicked="()=>ShowInfoModal(context)"><Icon Name="IconName.InfoCircle" /></Button>
+                    <Button Color="Color.Secondary" Clicked="()=>ShowEditModal(context)"><Icon Name="IconName.Edit" /></Button>
+                    <Button Color="Color.Danger" Clicked="()=>ShowDeleteModal(context)"><Icon Name="IconName.Delete" /></Button>
+                </Div>
+                
+            </Div>
+        </ItemTemplate>
+    </DropContainer>
+    
+}
+
 @code {
-    public class DropItem
-    {
-        public string Name { get; init; }
 
-        public string Group { get; set; }
-    }
+    private List<DropItem> items;
+    private HashSet<string> columns;
+    private string ProjectName;
 
-    private List<DropItem> items = new()
-    {
-        new DropItem() { Name = "Item 1", Group = "1" },
-        new DropItem() { Name = "Item 2", Group = "1" },
-        new DropItem() { Name = "Item 3", Group = "1" },
-        new DropItem() { Name = "Item 4", Group = "2" },
-        new DropItem() { Name = "Item 5", Group = "2" },
-    };
+    [Inject] public IModalService ModalService { get; set; }
 
     private Task ItemDropped(DraggableDroppedEventArgs<DropItem> dropItem)
     {
@@ -48,12 +68,51 @@
 
         var response = await httpClient.GetFromJsonAsync<ProjectDTO>("/api/project");
 
-        Console.WriteLine(response.Name);
-        Console.WriteLine(response.Template.Name);
-        foreach(var item in response.Items)
-        {
-            Console.WriteLine(item.Name);
-        }
+        // Console.WriteLine(response.Name);
+        // Console.WriteLine(response.Template.Name);
+        // foreach(var item in response.Items)
+        // {
+        //     Console.WriteLine(item.Name);
 
+        // }
+
+        columns = [];
+
+        items = [];
+        response.Template.Columns.ForEach(c => c.Items.ForEach(i =>
+        {
+            items.Add(new DropItem(c, i));
+            columns.Add(c.Name);
+        }));
+
+        ProjectName = response.Name;
+
+        // items.ForEach(i => Console.WriteLine($"ID: {i.Id}, Name: {i.Name}, Group: {i.Group}"));
+        // foreach(var c in columns)
+        // {
+        //     Console.WriteLine(c);
+        // }
+
+    }
+
+    public Task ShowInfoModal(DropItem item)
+    {
+        return ModalService.Show<ItemDetailsComponent>(x => x.Add(x => x.Item, item), new ModalInstanceOptions(){UseModalStructure=false});
+    }
+
+    public Task ShowEditModal(DropItem item)
+    {
+        return ModalService.Show<ModifyItemComponent>(x => x.Add(x => x.Item, item), new ModalInstanceOptions() { UseModalStructure = false });
+    }
+
+    public Task ShowDeleteModal(DropItem item)
+    {
+        return ModalService.Show<DeleteItemComponent>(x => x.Add(x => x.Item, item), new ModalInstanceOptions() { UseModalStructure = false });
+    }
+
+    // TODO: add parameter of function to make changes in UI when api response
+    public Task ShowAddColumnModal()
+    {
+        return ModalService.Show<AddColumnComponent>("Add new column");
     }
 }

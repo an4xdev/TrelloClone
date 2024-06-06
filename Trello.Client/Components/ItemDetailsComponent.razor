@@ -1,0 +1,14 @@
+﻿<ModalHeader>
+    <ModalTitle>
+        @Item.Name
+    </ModalTitle>
+    <CloseButton />
+</ModalHeader>
+<ModalBody>
+    <Text>Description: @Item.Description</Text>
+</ModalBody>
+
+@code {
+    [Inject] public IModalService ModalService { get; set; }
+    [Parameter] public DropItem Item { get; set; }
+}

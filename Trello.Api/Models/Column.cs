@@ -1,6 +1,6 @@
-﻿namespace Trello.Shared.Models
+﻿namespace Trello.Api.Models
 {
-    public class Project
+    public class Column
     {
         public int ID { get; set; }
 
@@ -10,5 +10,6 @@
         public Template Template { get; set; } = null!;
 
         public ICollection<Item> Items { get; set; } = [];
+
     }
 }

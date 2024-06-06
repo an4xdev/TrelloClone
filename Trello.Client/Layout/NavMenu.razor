@@ -50,11 +50,12 @@
 
     protected override async Task OnInitializedAsync()
     {
+        UserName = "Anonymous";
+        ProfilePicture = Utils.Photo;
         EventAggregator.Subscribe("AddedUser", HandleActionCompleted);
         var httpClient = clientFactory.CreateClient("API");
         var response = await httpClient.GetFromJsonAsync<UserDataDTO>("/api/users/user");
 
-        UserName = "Anonymous";
         if(response != null)
         {
             if (response.UserName.Equals(string.Empty))

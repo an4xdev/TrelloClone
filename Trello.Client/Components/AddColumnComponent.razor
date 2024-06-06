@@ -1,0 +1,20 @@
+﻿<ModalBody>
+    <Field Horizontal>
+        <FieldLabel ColumnSize="ColumnSize.IsFull.Is3.OnDesktop">
+            Name
+        </FieldLabel>
+        <FieldBody ColumnSize="ColumnSize.IsFull.OnTablet.Is9.OnDesktop">
+            <TextEdit @bind-Text="Name" />
+        </FieldBody>
+    </Field>
+</ModalBody>
+<ModalFooter>
+    <Button Color="Color.Success " Clicked="ModalService.Hide">Confirm</Button>
+    <Button Color="Color.Secondary" Clicked="ModalService.Hide">Cancel</Button>
+</ModalFooter>
+@code {
+    // TODO: add parameter of function to make changes in UI when api response
+    [Inject] public IModalService ModalService { get; set; }
+    public string Name { get; set; }
+
+}

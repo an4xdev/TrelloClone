@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Trello.Api", "Trello.Api\Tr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Trello.Shared", "Trello.Shared\Trello.Shared.csproj", "{1C350AF5-08D4-40D7-AFE2-75837ADEA140}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Trello.Client", "Trello.Client\Trello.Client.csproj", "{D919055B-F814-4922-A2EB-2FE945A92809}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Trello.Client", "Trello.Client\Trello.Client.csproj", "{D919055B-F814-4922-A2EB-2FE945A92809}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

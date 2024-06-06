@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Trello.Api.Models;
-using Trello.Shared.Models;
 
 namespace Trello.Api.Database
 {

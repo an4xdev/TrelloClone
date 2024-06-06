@@ -1,4 +1,4 @@
-﻿namespace Trello.Shared.Models
+﻿namespace Trello.Api.Models
 {
     public class Item
     {
