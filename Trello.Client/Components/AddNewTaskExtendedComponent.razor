@@ -1,39 +1,31 @@
-﻿<ModalHeader>
-    <ModalTitle>
-        Edit: @Item.Name
-    </ModalTitle>
-    <CloseButton />
-</ModalHeader>
-<ModalBody>
+﻿<ModalBody>
     <Field Horizontal>
         <FieldLabel ColumnSize="ColumnSize.IsFull.Is3.OnDesktop">
             Name
         </FieldLabel>
         <FieldBody ColumnSize="ColumnSize.IsFull.OnTablet.Is9.OnDesktop">
-            <TextEdit @bind-Text="Change.Name"/>
+            <TextEdit @bind-Text="Name" />
         </FieldBody>
-    </Field>
-    <Field Horizontal>
         <FieldLabel ColumnSize="ColumnSize.IsFull.Is3.OnDesktop">
-            Description
+            Category
         </FieldLabel>
         <FieldBody ColumnSize="ColumnSize.IsFull.OnTablet.Is9.OnDesktop">
-            <TextEdit @bind-Text="Change.Description" />
+            <Select @bind-SelectedValue="@Value">
+                @foreach(var c in Columns)
+                {
+                    <SelectItem Value="@c.ID">@c.Name</SelectItem>
+                }
+            </Select>
         </FieldBody>
     </Field>
 </ModalBody>
 <ModalFooter>
-    <Button Color="Color.Success " Clicked="ModalService.Hide">Confirm</Button>
+    <Button Color="Color.Success" Clicked="ModalService.Hide">Confirm</Button>
     <Button Color="Color.Secondary" Clicked="ModalService.Hide">Cancel</Button>
 </ModalFooter>
 @code {
     [Inject] public IModalService ModalService { get; set; }
-    [Parameter] public DropItem Item { get; set; }
-    private DropItem Change;
-
-    protected override void OnParametersSet()
-    {
-        base.OnParametersSet();
-        Change = new(Item);
-    }
+    [Parameter] public HashSet<ColumnModel> Columns { get; set; }
+    public string Name { get; set; }
+    public int Value { get; set; }
 }

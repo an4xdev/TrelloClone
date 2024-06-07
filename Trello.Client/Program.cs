@@ -1,6 +1,7 @@
 using Blazorise;
 using Blazorise.Bootstrap5;
 using Blazorise.Icons.FontAwesome;
+using Blazorise.LoadingIndicator;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Trello.Client;
@@ -22,6 +23,8 @@ builder.Services
 })
 .AddBootstrap5Providers()
 .AddFontAwesomeIcons();
+
+builder.Services.AddLoadingIndicator();
 
 builder.Services.AddSingleton<EventAggregator>();
 

@@ -1,0 +1,69 @@
+﻿@inject IHttpClientFactory clientFactory
+<ModalHeader>
+    <ModalTitle>
+        Edit: @Item.Name
+    </ModalTitle>
+    <CloseButton />
+</ModalHeader>
+<ModalBody>
+    <Field Horizontal>
+        <FieldLabel ColumnSize="ColumnSize.IsFull.Is3.OnDesktop">
+            Name
+        </FieldLabel>
+        <FieldBody ColumnSize="ColumnSize.IsFull.OnTablet.Is9.OnDesktop">
+            <TextEdit @bind-Text="Change.Name"/>
+        </FieldBody>
+    </Field>
+    <Field Horizontal>
+        <FieldLabel ColumnSize="ColumnSize.IsFull.Is3.OnDesktop">
+            Description
+        </FieldLabel>
+        <FieldBody ColumnSize="ColumnSize.IsFull.OnTablet.Is9.OnDesktop">
+            <TextEdit @bind-Text="Change.Description" />
+        </FieldBody>
+    </Field>
+</ModalBody>
+<ModalFooter>
+    <Button Color="Color.Success " Clicked="Confirm">Confirm</Button>
+    <Button Color="Color.Secondary" Clicked="ModalService.Hide">Cancel</Button>
+</ModalFooter>
+@code {
+    [Inject] public IModalService ModalService { get; set; }
+    [Parameter] public DropItem Item { get; set; }
+    [Parameter] public Func<DefaultResponse?, DropItem?, Task> OnConfirm { get; set; }
+    private DropItem Change;
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        Change = new(Item);
+    }
+
+    private async Task Confirm()
+    {
+
+        ChangeItemRequest request = new()
+            {
+                Id = Change.Id,
+                Name = Change.Name,
+                Description = Change.Description
+            };
+
+        var httpClient = clientFactory.CreateClient("API");
+
+        var response = await httpClient.PostAsJsonAsync<ChangeItemRequest>("/api/item/edit", request);
+
+        if(response == null)
+        {
+            await OnConfirm(null, null);
+        }
+        else
+        {
+            var content = await response.Content.ReadFromJsonAsync<DefaultResponse>();
+            await OnConfirm(content, Change);
+        }
+
+        await ModalService.Hide();
+
+    }
+}

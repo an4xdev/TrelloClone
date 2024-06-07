@@ -55,7 +55,7 @@ namespace Trello.Api.Database
                 new Column { ID = 3, Name = "Done", TemplateID = 1 }
             );
 
-            modelBuilder.Entity<Project>().HasData(new Project { ID = 1, Name = "Default Project", TemplateID = 1 });
+            modelBuilder.Entity<Project>().HasData(new Project { ID = 1, Name = "Default Project", TemplateID = 1, Description = "Default description of default project." });
 
             modelBuilder.Entity<Item>().HasData(
                 new Item { ID = 1, Name = "Get ready", Description = "Get ready to your project", ProjectID = 1, ColumnID = 1 },

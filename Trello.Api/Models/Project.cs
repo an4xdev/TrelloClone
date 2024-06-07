@@ -6,6 +6,8 @@
 
         public required string Name { get; set; } = string.Empty;
 
+        public string? Description { get; set; } = string.Empty;
+
         public int TemplateID { get; set; }
         public Template Template { get; set; } = null!;
 

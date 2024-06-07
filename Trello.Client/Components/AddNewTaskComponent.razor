@@ -13,8 +13,6 @@
     <Button Color="Color.Secondary" Clicked="ModalService.Hide">Cancel</Button>
 </ModalFooter>
 @code {
-    // TODO: add parameter of function to make changes in UI when api response
     [Inject] public IModalService ModalService { get; set; }
     public string Name { get; set; }
-
 }

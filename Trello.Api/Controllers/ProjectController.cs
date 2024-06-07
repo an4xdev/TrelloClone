@@ -9,7 +9,29 @@ namespace Trello.Api.Controllers
     [Route("api/[controller]")]
     public class ProjectController(AppDbContext context) : ControllerBase
     {
-        [HttpGet]
+        [HttpGet("all")]
+        public async Task<List<OnlyProjectDTO>> GetMyProjects()
+        {
+            var response = new List<OnlyProjectDTO>();
+
+            var projects = await context.Projects.ToListAsync();
+
+            foreach (var project in projects)
+            {
+                response.Add(
+                    new OnlyProjectDTO
+                    {
+                        Id = project.ID,
+                        Name = project.Name,
+                        Description = project.Description
+                    });
+            }
+
+            return await Task.FromResult(response);
+        }
+
+
+        [HttpGet("default")]
         public async Task<ProjectDTO> GetDefaultProject()
         {
             var project = await context.Projects

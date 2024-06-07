@@ -1,33 +1,36 @@
 ﻿@page "/drag"
+@page "/drag/{projectID:int}"
+@inject IToastService ToastService
 @inject IHttpClientFactory clientFactory
-@if(items == null || items.Count == 0 || columns == null || columns.Count == 0)
+@inject ILoadingIndicatorService ApplicationLoadingIndicatorService
+@if (!(Items == null || Items.Count == 0 || ColumnModels == null || ColumnModels.Count == 0))
 {
-    <p>Loading ...</p>
-}
-else
-{
-    <Div>
-        <Heading Size="HeadingSize.Is3" Margin="Margin.Is3.FromBottom.Is3.FromStart">Project: @ProjectName</Heading>
+    <Div Flex="Flex.AlignItems.Center.JustifyContent.Between">
+        <Div>
+            <Heading Size="HeadingSize.Is3" Margin="Margin.Is3.FromBottom.Is3.FromStart">Project: @ProjectName</Heading>
+        </Div>
+        <Div>
+            <Button Color="Color.Success" Margin="Margin.Is3.FromBottom.Is3.FromEnd" Clicked="ShowExtendedAddTask">Add new task</Button>
+        </Div>
     </Div>
-    <DropContainer TItem="DropItem" Items="@items" ItemDropped="@ItemDropped" Flex="Flex.Wrap.Grow.Is1.AlignItems.Center" ItemsFilter="@((item, dropZone) => item.Group == dropZone)">
+    <DropContainer TItem="DropItem" Items="@Items" ItemDropped="@ItemDropped" Flex="Flex.Wrap.Grow.Is1.AlignItems.Center" ItemsFilter="@((item, dropZone) => item.Group == dropZone)" @ref="DropContainer">
         <ChildContent>
-
-            @foreach(var c in columns)
+            @foreach(var c in ColumnModels)
             {
                 <Div Style="flex-grow:1" Flex="Flex.Column.AlignItems.Center">
                     <Div Width="Width.Is100">
-                        <DropZone TItem="DropItem" Name="@c" AllowReorder Padding="Padding.Is3" Margin="Margin.Is3" Flex="Flex.Grow.Is1" Shadow="Shadow.Large">
-                            <Heading Size="HeadingSize.Is4" Margin="Margin.Is3.FromBottom">@c</Heading>
+                        <DropZone TItem="DropItem" Name="@c.Name" AllowReorder Padding="Padding.Is3" Margin="Margin.Is3" Flex="Flex.Grow.Is1" Shadow="Shadow.Large">
+                            <Heading Size="HeadingSize.Is4" Margin="Margin.Is3.FromBottom">@c.Name</Heading>
                         </DropZone>
                     </Div>
                     <Div Display="Display.Flex">
-                        <Button Color="Color.Success"><Icon Name="IconName.Add" /></Button>
+                        <Button Color="Color.Success" Clicked="ShowAddTask">Add new task</Button>
                     </Div>
                 </Div>
             }
             <Div>
                 <Tooltip Text="Add Column">
-                    <Button Color="Color.Success" Clicked="ShowAddColumnModal"><Icon Name="IconName.Add"/></Button>
+                    <Button Color="Color.Primary" Clicked="ShowAddColumnModal">Add Column</Button>
                 </Tooltip>
             </Div>
         </ChildContent>
@@ -49,10 +52,13 @@ else
 }
 
 @code {
-
-    private List<DropItem> items;
-    private HashSet<string> columns;
+    private DropContainer<DropItem> DropContainer = new();
+    private List<DropItem> Items;
+    private HashSet<ColumnModel> ColumnModels;
     private string ProjectName;
+
+    [Parameter]
+    public int? ProjectID { get; set; }
 
     [Inject] public IModalService ModalService { get; set; }
 
@@ -64,9 +70,12 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+
+        await ApplicationLoadingIndicatorService.Show();
+
         var httpClient = clientFactory.CreateClient("API");
 
-        var response = await httpClient.GetFromJsonAsync<ProjectDTO>("/api/project");
+        var response = await httpClient.GetFromJsonAsync<ProjectDTO>("/api/project/default");
 
         // Console.WriteLine(response.Name);
         // Console.WriteLine(response.Template.Name);
@@ -76,22 +85,24 @@ else
 
         // }
 
-        columns = [];
+        ColumnModels = [];
 
-        items = [];
+        Items = [];
         response.Template.Columns.ForEach(c => c.Items.ForEach(i =>
         {
-            items.Add(new DropItem(c, i));
-            columns.Add(c.Name);
+            Items.Add(new DropItem(c, i));
+            ColumnModels.Add(new ColumnModel{ID = c.ID, Name = c.Name});
         }));
 
         ProjectName = response.Name;
 
-        // items.ForEach(i => Console.WriteLine($"ID: {i.Id}, Name: {i.Name}, Group: {i.Group}"));
+        Items.ForEach(i => Console.WriteLine($"ID: {i.Id}, Name: {i.Name}, Group: {i.Group}"));
         // foreach(var c in columns)
         // {
-        //     Console.WriteLine(c);
+        //     Console.WriteLine($"C Name: {c.Name}");
         // }
+
+        await ApplicationLoadingIndicatorService.Hide();
 
     }
 
@@ -102,7 +113,10 @@ else
 
     public Task ShowEditModal(DropItem item)
     {
-        return ModalService.Show<ModifyItemComponent>(x => x.Add(x => x.Item, item), new ModalInstanceOptions() { UseModalStructure = false });
+        return ModalService.Show<EditItemComponent>(x => {
+            x.Add(x => x.Item, item);
+            x.Add(x => x.OnConfirm, ChangedTask);
+        }, new ModalInstanceOptions() { UseModalStructure = false });
     }
 
     public Task ShowDeleteModal(DropItem item)
@@ -114,5 +128,39 @@ else
     public Task ShowAddColumnModal()
     {
         return ModalService.Show<AddColumnComponent>("Add new column");
+    }
+
+    public Task ShowExtendedAddTask()
+    {
+        return ModalService.Show<AddNewTaskExtendedComponent>("Add new task", x=>x.Add(x=>x.Columns, ColumnModels));
+    }
+
+    public Task ShowAddTask()
+    {
+        return ModalService.Show<AddNewTaskComponent>("Add new task");
+    }
+
+    private async Task ChangedTask(DefaultResponse? response, DropItem? changed)
+    {
+        if(response == null || changed == null)
+        {
+            await ToastService.Error("Error with processing request.");
+        }
+        else
+        {
+            if(response.IsSuccess)
+            {
+                var item = Items.Where(i => i.Id == changed.Id).First();
+                item.Name = changed.Name;
+                item.Description = changed.Description;
+                await ToastService.Success(response.Message); 
+            }
+            else
+            {
+                await ToastService.Error(response.Message);
+            }
+        }
+        DropContainer.Refresh();
+        StateHasChanged();
     }
 }
