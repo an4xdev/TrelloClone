@@ -1,6 +1,6 @@
 {
-  "name": "Trello.Client",
-  "short_name": "Trello.Client",
+  "name": "Trello Clone",
+  "short_name": "TC",
   "id": "./",
   "start_url": "./",
   "display": "standalone",
