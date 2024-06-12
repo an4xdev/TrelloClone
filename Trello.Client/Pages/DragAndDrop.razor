@@ -19,12 +19,12 @@
             {
                 <Div Style="flex-grow:1" Flex="Flex.Column.AlignItems.Center">
                     <Div Width="Width.Is100">
-                        <DropZone TItem="DropItem" Name="@c.Name" AllowReorder Padding="Padding.Is3" Margin="Margin.Is3" Flex="Flex.Grow.Is1" Shadow="Shadow.Large">
+                        <DropZone TItem="DropItem" Name="@c.Name" Padding="Padding.Is3" Margin="Margin.Is3" Flex="Flex.Grow.Is1" Shadow="Shadow.Large">
                             <Heading Size="HeadingSize.Is4" Margin="Margin.Is3.FromBottom">@c.Name</Heading>
                         </DropZone>
                     </Div>
                     <Div Display="Display.Flex">
-                        <Button Color="Color.Success" Clicked="ShowAddTask">Add new task</Button>
+                        <Button Color="Color.Success" Clicked="()=>ShowAddTask(c.ID, c.Name)">Add new task</Button>
                     </Div>
                 </Div>
             }
@@ -60,6 +60,8 @@
     [Parameter]
     public int? ProjectID { get; set; }
 
+    private int foo;
+
     [Inject] public IModalService ModalService { get; set; }
 
     private Task ItemDropped(DraggableDroppedEventArgs<DropItem> dropItem)
@@ -77,14 +79,6 @@
 
         var response = await httpClient.GetFromJsonAsync<ProjectDTO>("/api/project/default");
 
-        // Console.WriteLine(response.Name);
-        // Console.WriteLine(response.Template.Name);
-        // foreach(var item in response.Items)
-        // {
-        //     Console.WriteLine(item.Name);
-
-        // }
-
         ColumnModels = [];
 
         Items = [];
@@ -95,12 +89,9 @@
         }));
 
         ProjectName = response.Name;
+        foo = response.ID;
 
-        Items.ForEach(i => Console.WriteLine($"ID: {i.Id}, Name: {i.Name}, Group: {i.Group}"));
-        // foreach(var c in columns)
-        // {
-        //     Console.WriteLine($"C Name: {c.Name}");
-        // }
+        Items.ForEach(i => Console.WriteLine($"ID: {i.ID}, Name: {i.Name}, Group: {i.Group}"));
 
         await ApplicationLoadingIndicatorService.Hide();
 
@@ -121,7 +112,12 @@
 
     public Task ShowDeleteModal(DropItem item)
     {
-        return ModalService.Show<DeleteItemComponent>(x => x.Add(x => x.Item, item), new ModalInstanceOptions() { UseModalStructure = false });
+        return ModalService.Show<DeleteItemComponent>(
+            x => { 
+                x.Add(x => x.Item, item);
+                x.Add(x => x.OnConfirm, DeletedTask);
+            },
+            new ModalInstanceOptions() { UseModalStructure = false });
     }
 
     // TODO: add parameter of function to make changes in UI when api response
@@ -132,12 +128,44 @@
 
     public Task ShowExtendedAddTask()
     {
-        return ModalService.Show<AddNewTaskExtendedComponent>("Add new task", x=>x.Add(x=>x.Columns, ColumnModels));
+        return ModalService.Show<AddNewTaskExtendedComponent>("Add new task", x=>{
+            x.Add(x => x.Columns, ColumnModels);
+            x.Add(x => x.ProjectID, foo);
+            x.Add(x => x.OnConfirm, AddedTask);
+        });
     }
 
-    public Task ShowAddTask()
+    public Task ShowAddTask(int column, string columnName)
     {
-        return ModalService.Show<AddNewTaskComponent>("Add new task");
+        return ModalService.Show<AddNewTaskComponent>("Add new task", x => 
+        { 
+            x.Add(x => x.OnConfirm, AddedTask); 
+            x.Add(x => x.ColumnID, column); 
+            x.Add(x => x.ProjectID, foo);
+            x.Add(x => x.ColumnName, columnName);
+        });
+    }
+
+    private async Task AddedTask(AddItemResponse? response, DropItem? added)
+    {
+        if(response == null || added == null)
+        {
+            await ToastService.Error("Error with processing request.");
+        }
+        else
+        {
+            if(response.IsSuccess)
+            {
+                Items.Add(added);
+                await ToastService.Success(response.Message);
+            }
+            else
+            {
+                await ToastService.Error(response.Message);
+            }
+        }
+        DropContainer.Refresh();
+        StateHasChanged();
     }
 
     private async Task ChangedTask(DefaultResponse? response, DropItem? changed)
@@ -150,10 +178,32 @@
         {
             if(response.IsSuccess)
             {
-                var item = Items.Where(i => i.Id == changed.Id).First();
+                var item = Items.Where(i => i.ID == changed.ID).First();
                 item.Name = changed.Name;
                 item.Description = changed.Description;
                 await ToastService.Success(response.Message); 
+            }
+            else
+            {
+                await ToastService.Error(response.Message);
+            }
+        }
+        DropContainer.Refresh();
+        StateHasChanged();
+    }
+
+    private async Task DeletedTask(DefaultResponse? response, int? itemID)
+    {
+        if (response == null || itemID == null)
+        {
+            await ToastService.Error("Error with processing request.");
+        }
+        else
+        {
+            if (response.IsSuccess)
+            {
+                Items.RemoveAll(i => i.ID == itemID);
+                await ToastService.Success(response.Message);
             }
             else
             {

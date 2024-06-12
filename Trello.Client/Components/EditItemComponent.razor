@@ -30,7 +30,7 @@
 @code {
     [Inject] public IModalService ModalService { get; set; }
     [Parameter] public DropItem Item { get; set; }
-    [Parameter] public Func<DefaultResponse?, DropItem?, Task> OnConfirm { get; set; }
+    [Parameter] public Func<DefaultResponse?, DropItem?,Task> OnConfirm { get; set; }
     private DropItem Change;
 
     protected override void OnParametersSet()
@@ -44,7 +44,7 @@
 
         ChangeItemRequest request = new()
             {
-                Id = Change.Id,
+                Id = Change.ID,
                 Name = Change.Name,
                 Description = Change.Description
             };

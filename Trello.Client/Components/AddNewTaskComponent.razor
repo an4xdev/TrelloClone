@@ -1,4 +1,5 @@
-﻿<ModalBody>
+﻿@inject IHttpClientFactory clientFactory
+<ModalBody>
     <Field Horizontal>
         <FieldLabel ColumnSize="ColumnSize.IsFull.Is3.OnDesktop">
             Name
@@ -7,12 +8,51 @@
             <TextEdit @bind-Text="Name" />
         </FieldBody>
     </Field>
+    <Field Horizontal>
+        <FieldLabel ColumnSize="ColumnSize.IsFull.Is3.OnDesktop">
+            Description
+        </FieldLabel>
+        <FieldBody ColumnSize="ColumnSize.IsFull.OnTablet.Is9.OnDesktop">
+            <TextEdit @bind-Text="Description" />
+        </FieldBody>
+    </Field>
 </ModalBody>
 <ModalFooter>
-    <Button Color="Color.Success" Clicked="ModalService.Hide">Confirm</Button>
+    <Button Color="Color.Success" Clicked="Confirm">Confirm</Button>
     <Button Color="Color.Secondary" Clicked="ModalService.Hide">Cancel</Button>
 </ModalFooter>
 @code {
     [Inject] public IModalService ModalService { get; set; }
+    [Parameter] public Func<AddItemResponse?, DropItem?, Task> OnConfirm { get; set; }
+    [Parameter] public int ProjectID { get; set; }
+    [Parameter] public int ColumnID { get; set; }
+    [Parameter] public string ColumnName { get; set; }
     public string Name { get; set; }
+    public string Description { get; set; }
+
+    private async Task Confirm()
+    {
+        AddItemRequest request = new()
+            {
+                Name = Name,
+                ColumnID = ColumnID,
+                Description = Description,
+                ProjectID = ProjectID
+            };
+        var httpClient = clientFactory.CreateClient("API");
+        var response = await httpClient.PostAsJsonAsync<AddItemRequest>("/api/item/add", request);
+
+        if (response == null)
+        {
+            await OnConfirm(null, null);
+        }
+        else
+        {
+            var content = await response.Content.ReadFromJsonAsync<AddItemResponse>();
+            DropItem added = new(content.AddedID, Name, ColumnName, Description);
+            await OnConfirm(content, added);
+        }
+
+        await ModalService.Hide();
+    }
 }
