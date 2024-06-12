@@ -2,14 +2,15 @@
 @inject IHttpClientFactory clientFactory
 @inject NavigationManager navigationManager
 @inject ILoadingIndicatorService ApplicationLoadingIndicatorService
+@inject IToastService ToastService
 
 <AddUserComponent />
 
 <PageTitle>Your Projects</PageTitle>
 
-@if(projects != null)
+@if(projects != null && templates !=null)
 {
-    <CardDeck>
+    <CardDeck Margin="Margin.Is3.FromBottom">
         @foreach(var p in projects)
         {
             <Card>
@@ -28,17 +29,21 @@
                         }
                     </CardText>
                     <Button Color="Color.Primary" Clicked="()=> GoToProject(p.Id)"><Icon Name="IconName.InfoCircle" /></Button>
-                    <Button Color="Color.Secondary"><Icon Name="IconName.Edit" /></Button>
-                    <Button Color="Color.Danger"><Icon Name="IconName.Delete" /></Button>
+                    <Button Color="Color.Secondary" Clicked="()=>ShowEditModal(new ChangeProjectRequest(){ ID = p.Id, Name = p.Name, Description = p.Description, TemplateID = p.TemplateID })"><Icon Name="IconName.Edit" /></Button>
+                    <Button Color="Color.Danger" Clicked="()=>ShowDeleteModal(p.Id, p.Name)"><Icon Name="IconName.Delete" /></Button>
                 </CardBody>
             </Card>
         }
     </CardDeck>
+    <Button Color="Color.Success" Clicked="ShowAddProjectModal">Add Project</Button>
 }
+
 
 @code
 {
+    [Inject] public IModalService ModalService { get; set; }
     private List<OnlyProjectDTO> projects;
+    private List<OnlyTemplateDTO> templates;
 
     protected async override Task OnInitializedAsync()
     {
@@ -52,18 +57,126 @@
         if(response != null)
         {
             projects = response;
-            await ApplicationLoadingIndicatorService.Hide();
+
+            var tResponse = await httpClient.GetFromJsonAsync<List<OnlyTemplateDTO>>("/api/template/all");
+
+            if(tResponse != null)
+            {
+                templates = tResponse;
+            }
+            else
+            {
+                await ToastService.Error("Templates ERROR");
+            }
         }
         else
         {
-            Console.WriteLine("ERROR");
+            await ToastService.Error("Project ERROR");
         }
 
-        
+        await ApplicationLoadingIndicatorService.Hide();
     }
 
     private void GoToProject(int ID)
     {
         navigationManager.NavigateTo($"/drag/{ID}");
+    }
+
+    public Task ShowAddProjectModal()
+    {
+        return ModalService.Show<AddProjectComponent>(
+            x => 
+            { 
+                x.Add(x => x.templates, templates);
+                x.Add(x => x.OnConfirm, AddedProject);
+            }, new ModalInstanceOptions() { UseModalStructure = false });
+    }
+
+    public Task ShowEditModal(ChangeProjectRequest req)
+    {
+        return ModalService.Show<EditProjectComponent>(
+            x =>
+            {
+                x.Add(x => x.change, req);
+                x.Add(x => x.templates, templates);
+                x.Add(x => x.OnConfirm, EditedProject);
+            },new ModalInstanceOptions() { UseModalStructure = false }
+        );
+    }
+
+    public Task ShowDeleteModal(int ID, string name)
+    {
+        return ModalService.Show<DeleteProjectComponent>(
+            x =>
+            {
+                x.Add(x => x.ProjectID, ID);
+                x.Add(x => x.Name, name);
+                x.Add(x => x.OnConfirm, DeletedProject);
+            },
+        new ModalInstanceOptions() { UseModalStructure = false });
+    }
+
+    private async Task AddedProject(AddProjectResponse? response)
+    {
+        if(response == null)
+        {
+            await ToastService.Error("Error with processing request.");
+        }
+        else
+        {
+            if(response.IsSuccess)
+            {
+                await ToastService.Success(response.Message);
+                navigationManager.NavigateTo($"/drag/{response.AddedID}");
+            }
+            else
+            {
+                await ToastService.Error(response.Message);
+            }
+        }
+    }
+
+    private async Task EditedProject(DefaultResponse? response, ChangeProjectRequest? request)
+    {
+        if(response == null || request == null)
+        {
+            await ToastService.Error("Error with processing request.");
+        }
+        else
+        {
+            if(response.IsSuccess)
+            {
+                var project = projects.Where(p => p.Id == request.ID).First();
+                project.Name = request.Name;
+                project.Description = request.Description;
+                project.TemplateID = request.TemplateID;
+                StateHasChanged();
+                await ToastService.Success(response.Message);
+            }
+            else
+            {
+                await ToastService.Error(response.Message);
+            }
+        }
+    }
+
+    private async Task DeletedProject(DefaultResponse? response, int? projectID)
+    {
+        if(response == null || projectID == null)
+        {
+            await ToastService.Error("Error with processing request.");
+        }
+        else
+        {
+            if (response.IsSuccess)
+            {
+                projects.RemoveAll(p => p.Id == projectID);
+                await ToastService.Success(response.Message);
+            }
+            else
+            {
+                await ToastService.Error(response.Message);
+            }
+        }
     }
 }

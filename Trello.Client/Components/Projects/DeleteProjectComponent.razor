@@ -1,0 +1,43 @@
+﻿@inject IHttpClientFactory clientFactory
+<ModalHeader>
+    <ModalTitle>
+        Delete project: 
+    </ModalTitle>
+    <CloseButton />
+</ModalHeader>
+<ModalBody>
+    <Alert Color="Color.Danger" Visible>
+
+        <AlertDescription>
+            Are you sure you want to delete this project?
+        </AlertDescription>
+    </Alert>
+</ModalBody>
+<ModalFooter>
+    <Button Color="Color.Danger" Clicked="Confirm">Confirm</Button>
+    <Button Color="Color.Secondary" Clicked="ModalService.Hide">Cancel</Button>
+</ModalFooter>
+@code {
+    [Inject] public IModalService ModalService { get; set; }
+    [Parameter] public string Name { get; set; }
+    [Parameter] public int ProjectID { get; set; }
+    [Parameter] public Func<DefaultResponse?, int?, Task> OnConfirm { get; set; }
+
+    private async Task Confirm()
+    {
+        var httpClient = clientFactory.CreateClient("API");
+
+        var response = await httpClient.DeleteFromJsonAsync<DefaultResponse>($"/api/project/delete/{ProjectID}");
+
+        if(response == null)
+        {
+            await OnConfirm(null, null);
+        }
+        else
+        {
+            await OnConfirm(response, ProjectID);
+        }
+
+        await ModalService.Hide();
+    }
+}

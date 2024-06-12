@@ -1,0 +1,73 @@
+﻿@inject IHttpClientFactory clientFactory
+<ModalHeader>
+    <ModalTitle>
+        Edit: @Name
+    </ModalTitle>
+    <CloseButton/>
+</ModalHeader>
+<ModalBody>
+    <Field Horizontal>
+        <FieldLabel ColumnSize="ColumnSize.IsFull.Is3.OnDesktop">
+            Name
+        </FieldLabel>
+        <FieldBody ColumnSize="ColumnSize.IsFull.OnTablet.Is9.OnDesktop">
+            <TextEdit @bind-Text="change.Name" />
+        </FieldBody>
+    </Field>
+    <Field Horizontal>
+        <FieldLabel ColumnSize="ColumnSize.IsFull.Is3.OnDesktop">
+            Description
+        </FieldLabel>
+        <FieldBody ColumnSize="ColumnSize.IsFull.OnTablet.Is9.OnDesktop">
+            <TextEdit @bind-Text="change.Description" />
+        </FieldBody>
+    </Field>
+    <Field Horizontal>
+        <FieldLabel ColumnSize="ColumnSize.IsFull.Is3.OnDesktop">
+            Category
+        </FieldLabel>
+        <FieldBody ColumnSize="ColumnSize.IsFull.OnTablet.Is9.OnDesktop">
+            <Select @bind-SelectedValue="@change.TemplateID">
+                @foreach (var c in templates)
+                {
+                    <SelectItem Value="@c.ID">@c.Name</SelectItem>
+                }
+            </Select>
+        </FieldBody>
+    </Field>
+</ModalBody>
+<ModalFooter>
+    <Button Color="Color.Success " Clicked="Confirm">Confirm</Button>
+    <Button Color="Color.Secondary" Clicked="ModalService.Hide">Cancel</Button>
+</ModalFooter>
+@code {
+    [Inject] public IModalService ModalService { get; set; }
+    [Parameter] public ChangeProjectRequest change { get; set; }
+    [Parameter] public List<OnlyTemplateDTO> templates { get; set; }
+    [Parameter] public Func<DefaultResponse?,ChangeProjectRequest?,Task> OnConfirm { get; set; }
+    public string Name { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        Name = change.Name;
+    }
+
+    private async Task Confirm()
+    {
+        var httpClient = clientFactory.CreateClient("API");
+
+        var response = await httpClient.PostAsJsonAsync<ChangeProjectRequest>("/api/project/edit", change);
+
+        if(response == null)
+        {
+            await OnConfirm.Invoke(null,null);
+        }
+        else
+        {
+            var content = await response.Content.ReadFromJsonAsync<DefaultResponse>();
+            await OnConfirm.Invoke(content, change);
+        }
+        await ModalService.Hide();
+    }
+}

@@ -104,7 +104,7 @@
 
     public Task ShowEditModal(DropItem item)
     {
-        return ModalService.Show<EditItemComponent>(x => {
+        return ModalService.Show<EditTaskComponent>(x => {
             x.Add(x => x.Item, item);
             x.Add(x => x.OnConfirm, ChangedTask);
         }, new ModalInstanceOptions() { UseModalStructure = false });
@@ -112,7 +112,7 @@
 
     public Task ShowDeleteModal(DropItem item)
     {
-        return ModalService.Show<DeleteItemComponent>(
+        return ModalService.Show<DeleteTaskComponent>(
             x => { 
                 x.Add(x => x.Item, item);
                 x.Add(x => x.OnConfirm, DeletedTask);
@@ -128,7 +128,8 @@
 
     public Task ShowExtendedAddTask()
     {
-        return ModalService.Show<AddNewTaskExtendedComponent>("Add new task", x=>{
+        return ModalService.Show<AddNewTaskExtendedComponent>("Add new task", x =>
+        {
             x.Add(x => x.Columns, ColumnModels);
             x.Add(x => x.ProjectID, foo);
             x.Add(x => x.OnConfirm, AddedTask);
