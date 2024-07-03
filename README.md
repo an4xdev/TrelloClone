@@ -13,27 +13,27 @@ The main point of the application will be project planning, just like in the ori
   - [ ] Editing
 - Project:
   - API:
-    - [ ] Adding
-    - [ ] Editing
-    - [ ] Deleting  
+    - [x] Adding
+    - [x] Editing
+    - [x] Deleting  
   - Client:
-    - [ ] Adding
-    - [ ] Editing
-    - [ ] Deleting  
+    - [x] Adding
+    - [x] Editing
+    - [x] Deleting  
 - Templates:
   - API:
-    - [ ] Adding
+    - [x] Adding
     - [ ] Editing
     - [ ] Deleting  
   - Client:
-    - [ ] Adding
+    - [x] Adding
     - [ ] Editing
     - [ ] Deleting  
 - Tasks:
   - API:
-    - [ ] Adding
+    - [x] Adding
     - [x] Editing
-    - [ ] Deleting
+    - [x] Deleting
     - [ ] Changing category
   - Client:
     - [x] Adding
@@ -48,7 +48,7 @@ The main point of the application will be project planning, just like in the ori
 
 ## Requirements for use
 
-In its current state, the application is in production and it is recommended to run it through the IDE.
+In its current state, the application is in development and it is recommended to run it through the IDE.
 
 ### Required components
 

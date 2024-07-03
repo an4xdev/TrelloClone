@@ -47,7 +47,6 @@
 
     protected async override Task OnInitializedAsync()
     {
-
         await ApplicationLoadingIndicatorService.Show();
 
         var httpClient = clientFactory.CreateClient("API");

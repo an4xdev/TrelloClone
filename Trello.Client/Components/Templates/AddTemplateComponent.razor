@@ -1,0 +1,118 @@
+﻿@inject IToastService ToastService
+@inject IHttpClientFactory clientFactory
+<ModalHeader>
+    <ModalTitle>
+        Add new template
+    </ModalTitle>
+    <CloseButton />
+</ModalHeader>
+<ModalBody>
+    <Field Horizontal>
+        <FieldLabel ColumnSize="ColumnSize.IsFull.OnTablet.Is3.OnDesktop">
+            Name
+        </FieldLabel>
+        <FieldBody ColumnSize="ColumnSize.IsFull.OnTablet.Is9.OnDesktop">
+            <TextEdit @bind-Text="Request.Name"/>
+        </FieldBody>
+    </Field>
+    <Div Margin="Margin.Is2.FromBottom.Is2.FromTop">
+        <Text Margin="Margin.Is2.FromBottom.Is2.FromTop.Is2.FromEnd">Columns</Text>
+        <Button Color="Color.Primary" Clicked="ChangeInputVisibility">Add new column</Button>
+    </Div>
+    <Div Shadow="Shadow.Default" Flex="Flex.Row" Visibility="@(IsIputShow?Visibility.Visible:Visibility.Invisible)">
+        <Div Width="Width.Is75" Margin="Margin.Is2.FromEnd">
+            <Field Horizontal>
+                <FieldLabel ColumnSize="ColumnSize.IsFull.OnTablet.Is5.OnDesktop">
+                    Column name
+                </FieldLabel>
+                <FieldBody ColumnSize="ColumnSize.IsFull.OnTablet.Is7.OnDesktop">
+                    <TextEdit @bind-Text="ColumnName" InputMode="TextInputMode.Text" />
+                </FieldBody>
+            </Field>
+        </Div>
+        <Div Width="Width.Is25">
+            <Button Color="Color.Secondary" Clicked="()=>AddEditColumn()"><Icon Name="IconName.PlusCircle"/></Button>
+        </Div>
+    </Div>
+    @foreach(var c in Request.Columns)
+    {
+        <Card>
+            <CardBody Flex="Flex.Row.AlignItems.Center.JustifyContent.Between">
+                <CardText>@c.Name</CardText>
+                <Div>
+                    <Button Color="Color.Secondary" Clicked="()=>ChangeColumnName(c)"><Icon Name="IconName.Edit" /></Button>
+                    <Button Color="Color.Danger" Clicked="()=>DeleteColumn(c.ID)"><Icon Name="IconName.Delete" /></Button>
+                </Div>
+            </CardBody>
+        </Card>
+    }
+</ModalBody>
+<ModalFooter>
+    <Button Color="Color.Success" Clicked="Confirm">Confirm</Button>
+    <Button Color="Color.Secondary" Clicked="ModalService.Hide">Cancel</Button>
+</ModalFooter>
+@code {
+    [Inject] public IModalService ModalService { get; set; }
+    public AddTemplateRequest Request { get; set; } = new();
+    public bool IsIputShow { get; set; } = false;
+    public string ColumnName { get; set; } = string.Empty;
+    public string PrevColumnName { get; set; } = string.Empty;
+    public bool IsAdding { get; set; } = true;
+    public int ChangingColumnID { get; set; } = -1;
+
+    public void ChangeInputVisibility()
+    {
+        IsIputShow = true;
+    }
+
+    public async Task AddEditColumn()
+    {
+        if(ColumnName== string.Empty)
+        {
+            await ToastService.Error("Column name cannot be empty");
+            return;
+        }
+
+        if (IsAdding)
+        {
+            int max = Request.Columns.Count == 0 ? 1 : Request.Columns.Select(c => c.ID).Max() + 1;
+            Request.Columns.Add(new AddTemplateColumn()
+            {
+                ID = max,
+                Name = ColumnName
+            });
+            ColumnName = string.Empty;
+        }
+        else
+        {
+            var column = Request.Columns.Where(c => c.ID == ChangingColumnID).First();
+            column.Name = ColumnName;
+            ColumnName = PrevColumnName;
+            IsAdding = true;
+        }
+
+        IsIputShow = IsAdding? false: true;
+    }
+
+    public void ChangeColumnName(AddTemplateColumn column)
+    {
+        IsAdding = false;
+        IsIputShow = true;
+        PrevColumnName = ColumnName;
+        ColumnName = column.Name;
+        ChangingColumnID = column.ID;
+    }
+
+    public void DeleteColumn(int ID)
+    {
+        Request.Columns.RemoveAll(c => c.ID == ID);
+    }
+
+    public async Task Confirm()
+    {
+        var httpClient = clientFactory.CreateClient("API");
+        var response = await httpClient.PostAsJsonAsync<AddTemplateRequest>("/api/template/add", Request);
+
+
+    }
+}

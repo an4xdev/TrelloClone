@@ -10,7 +10,5 @@
 
         public int TemplateID { get; set; }
 
-
-
     }
 }

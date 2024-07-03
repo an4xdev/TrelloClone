@@ -1,0 +1,92 @@
+﻿@page "/template"
+@inject IHttpClientFactory clientFactory
+@inject ILoadingIndicatorService ApplicationLoadingIndicatorService
+@inject IToastService ToastService
+<PageTitle>Templates</PageTitle>
+
+<Heading Size="HeadingSize.Is3" Margin="Margin.Is3.FromStart">Templates</Heading>
+
+@if(templates != null)
+{
+    <CardDeck Margin="Margin.Is3.FromBottom">
+        @foreach(var t in templates)
+        {
+            <Card>
+                <CardBody>
+                    <CardTitle Size="4">
+                        Template: @t.Name
+                    </CardTitle>
+                    <Button Color="Color.Primary"><Icon Name="IconName.InfoCircle"/></Button>
+                    <Button Color="Color.Secondary"><Icon Name="IconName.Edit"/></Button>
+                    <Button Color="Color.Danger"><Icon Name="IconName.Delete"/></Button>
+                </CardBody>
+            </Card>
+        }
+    </CardDeck>
+    <Button Color="Color.Success" Clicked="ShowAddTemplate">Add template</Button>
+}
+
+@code {
+    [Inject] public IModalService ModalService { get; set; }
+    private List<TemplateDTO> templates;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ApplicationLoadingIndicatorService.Show();
+
+        var httpClient = clientFactory.CreateClient("API");
+
+        var response = await httpClient.GetFromJsonAsync<List<TemplateDTO>>("/api/template/");
+
+        if(response != null)
+        {
+            templates = response;
+        }
+        else
+        {
+            await ToastService.Error("Templates ERROR");
+        }
+
+        await ApplicationLoadingIndicatorService.Hide();
+    }
+
+    public Task ShowAddTemplate()
+    {
+        return ModalService.Show<AddTemplateComponent>("",new ModalInstanceOptions()
+            {
+                UseModalStructure = false
+            });
+    }
+
+    public async Task TemaplateAdded(DefaultResponse? response, int? templateID)
+    {
+        if(response == null || templateID == null)
+        {
+            await ToastService.Error("Error with processing request.");
+        }
+        else
+        {
+            if(response.IsSuccess)
+            {
+                var httpClient = clientFactory.CreateClient("API");
+
+                var templateResposne = await httpClient.GetFromJsonAsync<TemplateDTO>($"/api/template/{templateID}");
+
+                if (templateResposne == null)
+                {
+                    await ToastService.Error("Error with retrieving new added template");
+                }
+                else
+                {
+                    templates.Add(templateResposne);
+                    await ToastService.Success(response.Message);
+                }
+
+            }
+            else
+            {
+                await ToastService.Error(response.Message);
+            }
+        }
+    }
+}
