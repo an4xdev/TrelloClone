@@ -16,7 +16,7 @@
                     <CardTitle Size="4">
                         Template: @t.Name
                     </CardTitle>
-                    <Button Color="Color.Primary"><Icon Name="IconName.InfoCircle"/></Button>
+                    <Button Color="Color.Primary" Clicked="()=>ShowInfoTemplate(t.ID)"><Icon Name="IconName.InfoCircle"/></Button>
                     <Button Color="Color.Secondary"><Icon Name="IconName.Edit"/></Button>
                     <Button Color="Color.Danger" Clicked="()=>RemoveTemplate(t.ID)"><Icon Name="IconName.Delete"/></Button>
                 </CardBody>
@@ -48,6 +48,21 @@
         }
 
         await ApplicationLoadingIndicatorService.Hide();
+    }
+
+    public async Task ShowInfoTemplate(int ID)
+    {
+        var template = templates.Find(t => t.ID == ID);
+        if(template == null)
+        {
+            await ToastService.Error("Unknown template to display.");
+            return;
+        }
+        await ModalService.Show<InfoTemplateComponent>(x =>
+        {
+            x.Add(x => x.Columns, template.Columns.Select(c => c.Name).ToList());
+            x.Add(x => x.Name, template.Name);
+        }, new ModalInstanceOptions() { UseModalStructure = false });
     }
 
     public Task ShowAddTemplate()

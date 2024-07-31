@@ -1,0 +1,42 @@
+﻿<ModalHeader>
+    <ModalTitle>
+        Template: @Name
+    </ModalTitle>
+    <CloseButton />
+</ModalHeader>
+<ModalBody>
+    <DropContainer Flex="Flex.Wrap.Grow.Is1.AlignItems.Center" TItem="Temp" Items="@List">
+        <ChildContent>
+            @foreach (var c in Columns)
+            {
+                <Div Style="flex-grow:1" Flex="Flex.Column.AlignItems.Center">
+                    <Div Width="Width.Is100">
+                        <DropZone TItem="DropItem" Name="@c" Padding="Padding.Is3" Margin="Margin.Is3" Flex="Flex.Grow.Is1" Shadow="Shadow.Large">
+                            <Heading Size="HeadingSize.Is4" Margin="Margin.Is3.FromBottom">@c</Heading>
+                        </DropZone>
+                    </Div>
+                </Div>
+            }
+        </ChildContent>
+    </DropContainer>
+</ModalBody>
+<ModalFooter>
+    <Button Color="Color.Secondary" Clicked="Close">Cancel</Button>
+</ModalFooter>
+@code {
+    [Inject] public IModalService ModalService { get; set; }
+    [Parameter] public List<string> Columns { get; set; }
+    [Parameter] public string Name { get; set; }
+    private List<Temp> List = [];
+
+    public async Task Close()
+    {
+        await ModalService.Hide();
+    }
+
+    private class Temp
+    {
+        
+    }
+
+}
