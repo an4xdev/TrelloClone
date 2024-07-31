@@ -9,6 +9,8 @@ public class Column
     public int TemplateID { get; set; }
     public Template Template { get; set; } = null!;
 
+    public bool MarkAsDone { get; set; } = false;
+
     public ICollection<Item> Items { get; set; } = [];
 
 }

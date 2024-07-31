@@ -6,6 +6,8 @@
 
         public string Name { get; set; }
 
+        public bool MarkAsDone { get; set; }
+
         public override bool Equals(object? obj)
         {
             if (obj == null || GetType() != obj.GetType())

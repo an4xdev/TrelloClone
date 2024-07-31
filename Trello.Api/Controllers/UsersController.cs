@@ -53,27 +53,21 @@ public class UsersController(AppDbContext context) : ControllerBase
     [HttpGet("user")]
     public async Task<UserDataDTO> GetUserData()
     {
+        UserDataDTO response = new();
 
         var user = await context.Users.FirstOrDefaultAsync();
 
-        UserDataDTO response = new()
+        if (user == null)
         {
-            UserName = string.Empty,
-            ProfilePictureData = string.Empty,
-            ProfilePictureExtension = string.Empty,
-        };
-        if (user != null)
-        {
-
-            byte[] photoData = System.IO.File.ReadAllBytes(user.ProfilePicture);
-            string photo = Convert.ToBase64String(photoData);
-            string ext = Path.GetExtension(user.ProfilePicture).Split(".")[1];
-            response.ProfilePictureData = photo;
-            response.ProfilePictureExtension = ext;
-            response.UserName = user.UserName;
-
-
+            return await Task.FromResult(response);
         }
+
+        byte[] photoData = System.IO.File.ReadAllBytes(user.ProfilePicture);
+        string photo = Convert.ToBase64String(photoData);
+        string ext = Path.GetExtension(user.ProfilePicture).Split(".")[1];
+        response.ProfilePictureData = photo;
+        response.ProfilePictureExtension = ext;
+        response.UserName = user.UserName;
 
         return await Task.FromResult(response);
 

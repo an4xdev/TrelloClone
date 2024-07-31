@@ -56,11 +56,13 @@ public class ProjectController(AppDbContext context) : ControllerBase
                 {
                     ID = c.ID,
                     Name = c.Name,
+                    MarkAsDone = c.MarkAsDone,
                     Items = c.Items.Select(i => new ItemDTO
                     {
                         ID = i.ID,
                         Name = i.Name,
-                        Description = i.Description
+                        Description = i.Description,
+                        DoneDate = i.DoneDate,
                     }).ToList()
                 }).ToList()
             },
@@ -114,31 +116,31 @@ public class ProjectController(AppDbContext context) : ControllerBase
 
         var project = await context.Projects.Where(p => p.ID == request.ID).FirstAsync();
 
-        if (project != null)
+        if (project == null)
         {
-            project.Name = request.Name;
-            project.Description = request.Description;
-            project.TemplateID = request.TemplateID;
-            project.Template = await context.Templates.Where(t => t.ID == request.TemplateID).FirstAsync();
+            response.IsSuccess = false;
+            response.Message = "Unknown project to edit.";
+            return await Task.FromResult(response);
+        }
 
-            int changed = await context.SaveChangesAsync();
+        project.Name = request.Name;
+        project.Description = request.Description;
+        project.TemplateID = request.TemplateID;
+        project.Template = await context.Templates.Where(t => t.ID == request.TemplateID).FirstAsync();
 
-            if (changed > 0)
-            {
-                response.IsSuccess = true;
-                response.Message = "The project was successfully edited.";
-            }
-            else
-            {
-                response.IsSuccess = false;
-                response.Message = "An error occurred during the project edit.";
-            }
+        int changed = await context.SaveChangesAsync();
+
+        if (changed > 0)
+        {
+            response.IsSuccess = true;
+            response.Message = "The project was successfully edited.";
         }
         else
         {
             response.IsSuccess = false;
-            response.Message = "Unknown project to edit.";
+            response.Message = "An error occurred during the project edit.";
         }
+
 
         return await Task.FromResult(response);
     }

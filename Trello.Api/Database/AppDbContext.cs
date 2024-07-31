@@ -52,7 +52,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         modelBuilder.Entity<Column>().HasData(
             new Column { ID = 1, Name = "TODO", TemplateID = 1 },
             new Column { ID = 2, Name = "In progress", TemplateID = 1 },
-            new Column { ID = 3, Name = "Done", TemplateID = 1 }
+            new Column { ID = 3, Name = "Done", TemplateID = 1, MarkAsDone = true }
         );
 
         modelBuilder.Entity<Project>().HasData(new Project { ID = 1, Name = "Default Project", TemplateID = 1, Description = "Default description of default project." });
@@ -60,7 +60,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         modelBuilder.Entity<Item>().HasData(
             new Item { ID = 1, Name = "Get ready", Description = "Get ready to your project", ProjectID = 1, ColumnID = 1 },
             new Item { ID = 2, Name = "Plan it", Description = "You are planning your project", ProjectID = 1, ColumnID = 2 },
-            new Item { ID = 3, Name = "Pet capybara", Description = "You petted capybara", ProjectID = 1, ColumnID = 3 }
+            new Item { ID = 3, Name = "Pet capybara", Description = "You petted capybara", ProjectID = 1, ColumnID = 3, DoneDate = DateOnly.FromDateTime(DateTime.Now) }
         );
 
     }

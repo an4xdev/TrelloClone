@@ -49,7 +49,7 @@
         else
         {
             var content = await response.Content.ReadFromJsonAsync<AddItemResponse>();
-            DropItem added = new(content.AddedID, Name, ColumnName, Description);
+            DropItem added = new(content.AddedID, Name, ColumnName, Description, null);
             await OnConfirm(content, added);
         }
 

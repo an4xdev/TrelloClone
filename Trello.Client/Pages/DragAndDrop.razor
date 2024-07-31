@@ -21,6 +21,12 @@
                     <Div Width="Width.Is100">
                         <DropZone TItem="DropItem" Name="@c.Name" Padding="Padding.Is3" Margin="Margin.Is3" Flex="Flex.Grow.Is1" Shadow="Shadow.Large">
                             <Heading Size="HeadingSize.Is4" Margin="Margin.Is3.FromBottom">@c.Name</Heading>
+                            @if(c.MarkAsDone)
+                            {
+                                <Tooltip Text="Tasks in this column are marked as done for statistics">
+                                    <Icon Name="IconName.InfoCircle" />
+                                </Tooltip>
+                            }
                         </DropZone>
                     </Div>
                     <Div Display="Display.Flex">
@@ -85,7 +91,7 @@
         response.Template.Columns.ForEach(c => c.Items.ForEach(i =>
         {
             Items.Add(new DropItem(c, i));
-            ColumnModels.Add(new ColumnModel{ID = c.ID, Name = c.Name});
+            ColumnModels.Add(new ColumnModel{ID = c.ID, Name = c.Name, MarkAsDone = c.MarkAsDone});
         }));
 
         ProjectName = response.Name;

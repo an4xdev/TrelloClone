@@ -24,11 +24,11 @@ The main point of the application will be project planning, just like in the ori
   - API:
     - [x] Adding
     - [ ] Editing
-    - [ ] Deleting  
+    - [x] Deleting  
   - Client:
     - [x] Adding
     - [ ] Editing
-    - [ ] Deleting  
+    - [x] Deleting  
 - Tasks:
   - API:
     - [x] Adding

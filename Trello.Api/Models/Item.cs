@@ -8,6 +8,8 @@ public class Item
 
     public string Description { get; set; } = string.Empty;
 
+    public DateOnly? DoneDate { get; set; }
+
     public int ProjectID { get; set; }
     public Project Project { get; set; } = null!;
 
