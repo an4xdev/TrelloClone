@@ -116,5 +116,29 @@ namespace Trello.Api.Controllers
 
             return await Task.FromResult(response);
         }
+
+        [HttpDelete("{id}")]
+        public async Task<DefaultResponse> DeleteTemplate(int id)
+        {
+
+            DefaultResponse response = new();
+
+            var template = await context.Templates.Where(t => t.ID == id).FirstOrDefaultAsync();
+
+            if (template != null)
+            {
+                context.Templates.Remove(template);
+                response.IsSuccess = true;
+                response.Message = $"Successfully deleted template {template.Name}";
+            }
+            else
+            {
+                response.IsSuccess = false;
+                response.Message = "Unsuccessfully deleted template";
+            }
+
+            return await Task.FromResult(response);
+
+        }
     }
 }

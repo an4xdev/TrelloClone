@@ -52,6 +52,7 @@
     <Button Color="Color.Secondary" Clicked="ModalService.Hide">Cancel</Button>
 </ModalFooter>
 @code {
+    [Parameter] public Func<AddTemplateResponse?, Task> OnConfirm { get; set; }
     [Inject] public IModalService ModalService { get; set; }
     public AddTemplateRequest Request { get; set; } = new();
     public bool IsIputShow { get; set; } = false;
@@ -112,7 +113,15 @@
     {
         var httpClient = clientFactory.CreateClient("API");
         var response = await httpClient.PostAsJsonAsync<AddTemplateRequest>("/api/template/add", Request);
+        if(response == null)
+        {
+            await OnConfirm(null);
+            return;
+        }
+        var content = await response.Content.ReadFromJsonAsync<AddTemplateResponse>();
+        await OnConfirm(content);
 
-
+        await ModalService.Hide();
     }
+}
 }

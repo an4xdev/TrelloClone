@@ -18,7 +18,7 @@
                     </CardTitle>
                     <Button Color="Color.Primary"><Icon Name="IconName.InfoCircle"/></Button>
                     <Button Color="Color.Secondary"><Icon Name="IconName.Edit"/></Button>
-                    <Button Color="Color.Danger"><Icon Name="IconName.Delete"/></Button>
+                    <Button Color="Color.Danger" Clicked="()=>RemoveTemplate(t.ID)"><Icon Name="IconName.Delete"/></Button>
                 </CardBody>
             </Card>
         }
@@ -52,15 +52,18 @@
 
     public Task ShowAddTemplate()
     {
-        return ModalService.Show<AddTemplateComponent>("",new ModalInstanceOptions()
+        return ModalService.Show<AddTemplateComponent>(x=>
+        {
+            x.Add(x => x.OnConfirm, TemaplateAdded);
+        },new ModalInstanceOptions()
             {
                 UseModalStructure = false
             });
     }
 
-    public async Task TemaplateAdded(DefaultResponse? response, int? templateID)
+    public async Task TemaplateAdded(AddTemplateResponse? response)
     {
-        if(response == null || templateID == null)
+        if(response == null)
         {
             await ToastService.Error("Error with processing request.");
         }
@@ -70,7 +73,7 @@
             {
                 var httpClient = clientFactory.CreateClient("API");
 
-                var templateResposne = await httpClient.GetFromJsonAsync<TemplateDTO>($"/api/template/{templateID}");
+                var templateResposne = await httpClient.GetFromJsonAsync<TemplateDTO>($"/api/template/{response.AddedID}");
 
                 if (templateResposne == null)
                 {
@@ -82,6 +85,30 @@
                     await ToastService.Success(response.Message);
                 }
 
+            }
+            else
+            {
+                await ToastService.Error(response.Message);
+            }
+        }
+    }
+
+    public async Task RemoveTemplate(int ID)
+    {
+        var httpClient = clientFactory.CreateClient("API");
+
+        var response = await httpClient.DeleteFromJsonAsync<DefaultResponse>($"/api/template/{ID}");
+
+        if (response == null)
+        {
+            await ToastService.Error("Error with processing request.");
+        }
+        else
+        {
+            if(response.IsSuccess)
+            {
+                await ToastService.Success(response.Message);
+                templates.RemoveAll(t => t.ID == ID);
             }
             else
             {
