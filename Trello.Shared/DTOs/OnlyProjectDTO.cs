@@ -1,13 +1,12 @@
-﻿namespace Trello.Shared.DTOs
+﻿namespace Trello.Shared.DTOs;
+
+public class OnlyProjectDTO
 {
-    public class OnlyProjectDTO
-    {
-        public int Id { get; set; }
+    public int Id { get; set; }
 
-        public string Name { get; set; }
+    public string Name { get; set; }
 
-        public string? Description { get; set; }
+    public string? Description { get; set; }
 
-        public int TemplateID { get; set; }
-    }
+    public int TemplateID { get; set; }
 }

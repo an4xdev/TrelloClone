@@ -1,11 +1,10 @@
-﻿namespace Trello.Shared.Requests
+﻿namespace Trello.Shared.Requests;
+
+public class ChangeItemRequest
 {
-    public class ChangeItemRequest
-    {
-        public int Id { get; set; }
+    public int Id { get; set; }
 
-        public string Name { get; set; }
+    public string Name { get; set; }
 
-        public string Description { get; set; }
-    }
+    public string Description { get; set; }
 }

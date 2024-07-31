@@ -120,19 +120,19 @@
         if(response == null)
         {
             await ToastService.Error("Error with processing request.");
+            return;
+        }
+
+        if(response.IsSuccess)
+        {
+            await ToastService.Success(response.Message);
+            navigationManager.NavigateTo($"/drag/{response.AddedID}");
         }
         else
         {
-            if(response.IsSuccess)
-            {
-                await ToastService.Success(response.Message);
-                navigationManager.NavigateTo($"/drag/{response.AddedID}");
-            }
-            else
-            {
-                await ToastService.Error(response.Message);
-            }
+            await ToastService.Error(response.Message);
         }
+
     }
 
     private async Task EditedProject(DefaultResponse? response, ChangeProjectRequest? request)
@@ -140,23 +140,23 @@
         if(response == null || request == null)
         {
             await ToastService.Error("Error with processing request.");
+            return;
+        }
+
+        if(response.IsSuccess)
+        {
+            var project = projects.Where(p => p.Id == request.ID).First();
+            project.Name = request.Name;
+            project.Description = request.Description;
+            project.TemplateID = request.TemplateID;
+            StateHasChanged();
+            await ToastService.Success(response.Message);
         }
         else
         {
-            if(response.IsSuccess)
-            {
-                var project = projects.Where(p => p.Id == request.ID).First();
-                project.Name = request.Name;
-                project.Description = request.Description;
-                project.TemplateID = request.TemplateID;
-                StateHasChanged();
-                await ToastService.Success(response.Message);
-            }
-            else
-            {
-                await ToastService.Error(response.Message);
-            }
+            await ToastService.Error(response.Message);
         }
+
     }
 
     private async Task DeletedProject(DefaultResponse? response, int? projectID)
@@ -164,18 +164,18 @@
         if(response == null || projectID == null)
         {
             await ToastService.Error("Error with processing request.");
+            return;
+        }
+
+        if (response.IsSuccess)
+        {
+            projects.RemoveAll(p => p.Id == projectID);
+            await ToastService.Success(response.Message);
         }
         else
         {
-            if (response.IsSuccess)
-            {
-                projects.RemoveAll(p => p.Id == projectID);
-                await ToastService.Success(response.Message);
-            }
-            else
-            {
-                await ToastService.Error(response.Message);
-            }
+            await ToastService.Error(response.Message);
         }
+        
     }
 }

@@ -1,10 +1,9 @@
-﻿namespace Trello.Api.Models
-{
-    public class Template
-    {
-        public int ID { get; set; }
-        public required string Name { get; set; } = string.Empty;
+﻿namespace Trello.Api.Models;
 
-        public ICollection<Column> Columns { get; set; } = [];
-    }
+public class Template
+{
+    public int ID { get; set; }
+    public required string Name { get; set; } = string.Empty;
+
+    public ICollection<Column> Columns { get; set; } = [];
 }

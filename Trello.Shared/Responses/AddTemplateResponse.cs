@@ -1,7 +1,6 @@
-﻿namespace Trello.Shared.Responses
+﻿namespace Trello.Shared.Responses;
+
+public class AddTemplateResponse : DefaultResponse
 {
-    public class AddTemplateResponse : DefaultResponse
-    {
-        public int AddedID { get; set; }
-    }
+    public int AddedID { get; set; }
 }

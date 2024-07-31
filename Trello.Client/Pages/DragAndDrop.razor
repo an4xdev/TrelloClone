@@ -152,21 +152,19 @@
         if(response == null || added == null)
         {
             await ToastService.Error("Error with processing request.");
+            return;
+        }
+        if(response.IsSuccess)
+        {
+            Items.Add(added);
+            await ToastService.Success(response.Message);
+            DropContainer.Refresh();
+            StateHasChanged();
         }
         else
         {
-            if(response.IsSuccess)
-            {
-                Items.Add(added);
-                await ToastService.Success(response.Message);
-            }
-            else
-            {
-                await ToastService.Error(response.Message);
-            }
+            await ToastService.Error(response.Message);
         }
-        DropContainer.Refresh();
-        StateHasChanged();
     }
 
     private async Task ChangedTask(DefaultResponse? response, DropItem? changed)
@@ -174,23 +172,23 @@
         if(response == null || changed == null)
         {
             await ToastService.Error("Error with processing request.");
+            return;
+        }
+
+        if(response.IsSuccess)
+        {
+            var item = Items.Where(i => i.ID == changed.ID).First();
+            item.Name = changed.Name;
+            item.Description = changed.Description;
+            await ToastService.Success(response.Message); 
+            DropContainer.Refresh();
+            StateHasChanged();
         }
         else
         {
-            if(response.IsSuccess)
-            {
-                var item = Items.Where(i => i.ID == changed.ID).First();
-                item.Name = changed.Name;
-                item.Description = changed.Description;
-                await ToastService.Success(response.Message); 
-            }
-            else
-            {
-                await ToastService.Error(response.Message);
-            }
+            await ToastService.Error(response.Message);
         }
-        DropContainer.Refresh();
-        StateHasChanged();
+
     }
 
     private async Task DeletedTask(DefaultResponse? response, int? itemID)
@@ -198,20 +196,20 @@
         if (response == null || itemID == null)
         {
             await ToastService.Error("Error with processing request.");
+            return;
+        }
+
+        if (response.IsSuccess)
+        {
+            Items.RemoveAll(i => i.ID == itemID);
+            await ToastService.Success(response.Message);
+            DropContainer.Refresh();
+            StateHasChanged();
         }
         else
         {
-            if (response.IsSuccess)
-            {
-                Items.RemoveAll(i => i.ID == itemID);
-                await ToastService.Success(response.Message);
-            }
-            else
-            {
-                await ToastService.Error(response.Message);
-            }
+            await ToastService.Error(response.Message);
         }
-        DropContainer.Refresh();
-        StateHasChanged();
+        
     }
 }

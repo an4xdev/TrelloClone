@@ -55,10 +55,7 @@
         return ModalService.Show<AddTemplateComponent>(x=>
         {
             x.Add(x => x.OnConfirm, TemaplateAdded);
-        },new ModalInstanceOptions()
-            {
-                UseModalStructure = false
-            });
+        },new ModalInstanceOptions(){ UseModalStructure = false });
     }
 
     public async Task TemaplateAdded(AddTemplateResponse? response)
@@ -66,31 +63,31 @@
         if(response == null)
         {
             await ToastService.Error("Error with processing request.");
+            return;
         }
-        else
+
+        if(response.IsSuccess)
         {
-            if(response.IsSuccess)
+            var httpClient = clientFactory.CreateClient("API");
+
+            var templateResposne = await httpClient.GetFromJsonAsync<TemplateDTO>($"/api/template/{response.AddedID}");
+
+            if (templateResposne == null)
             {
-                var httpClient = clientFactory.CreateClient("API");
-
-                var templateResposne = await httpClient.GetFromJsonAsync<TemplateDTO>($"/api/template/{response.AddedID}");
-
-                if (templateResposne == null)
-                {
-                    await ToastService.Error("Error with retrieving new added template");
-                }
-                else
-                {
-                    templates.Add(templateResposne);
-                    await ToastService.Success(response.Message);
-                }
-
+                await ToastService.Error("Error with retrieving new added template");
             }
             else
             {
-                await ToastService.Error(response.Message);
+                templates.Add(templateResposne);
+                await ToastService.Success(response.Message);
             }
+
         }
+        else
+        {
+            await ToastService.Error(response.Message);
+        }
+
     }
 
     public async Task RemoveTemplate(int ID)
@@ -102,18 +99,18 @@
         if (response == null)
         {
             await ToastService.Error("Error with processing request.");
+            return;
+        }
+
+        if(response.IsSuccess)
+        {
+            await ToastService.Success(response.Message);
+            templates.RemoveAll(t => t.ID == ID);
         }
         else
         {
-            if(response.IsSuccess)
-            {
-                await ToastService.Success(response.Message);
-                templates.RemoveAll(t => t.ID == ID);
-            }
-            else
-            {
-                await ToastService.Error(response.Message);
-            }
+            await ToastService.Error(response.Message);
         }
+        
     }
 }

@@ -1,9 +1,8 @@
-﻿namespace Trello.Shared.Responses
-{
-    public class DefaultResponse
-    {
-        public bool IsSuccess { get; set; }
+﻿namespace Trello.Shared.Responses;
 
-        public string? Message { get; set; }
-    }
+public class DefaultResponse
+{
+    public bool IsSuccess { get; set; }
+
+    public string? Message { get; set; }
 }

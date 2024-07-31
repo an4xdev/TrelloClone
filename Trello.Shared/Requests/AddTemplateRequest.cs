@@ -1,9 +1,8 @@
-﻿namespace Trello.Shared.Requests
-{
-    public class AddTemplateRequest
-    {
-        public string Name { get; set; } = string.Empty;
+﻿namespace Trello.Shared.Requests;
 
-        public List<AddTemplateColumn> Columns { get; set; } = [];
-    }
+public class AddTemplateRequest
+{
+    public string Name { get; set; } = string.Empty;
+
+    public List<AddTemplateColumn> Columns { get; set; } = [];
 }
