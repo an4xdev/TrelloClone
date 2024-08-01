@@ -4,7 +4,7 @@
 
 This is a project to improve skils with `Blazor` and `ASP.NET Core`.
 The UI was made using [Blazorise](https://blazorise.com/).
-The main point of the application will be project planning, just like in the original application. However, unlike the original, the app is planned for local use.
+The main point of the application will be project planning, just like in the original application.
 
 ## TODO List
 
@@ -27,7 +27,7 @@ The main point of the application will be project planning, just like in the ori
     - [x] Deleting  
   - Client:
     - [x] Adding
-    - [ ] Editing
+    - [x] Editing
     - [x] Deleting  
 - Tasks:
   - API:
