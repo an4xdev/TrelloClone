@@ -70,7 +70,7 @@
         return ModalService.Show<AddTemplateComponent>(x=>
         {
             x.Add(x => x.OnConfirm, TemaplateAdded);
-        },new ModalInstanceOptions(){ UseModalStructure = false });
+        },new ModalInstanceOptions(){ UseModalStructure = false, Size=ModalSize.ExtraLarge });
     }
 
     public async Task TemaplateAdded(AddTemplateResponse? response)

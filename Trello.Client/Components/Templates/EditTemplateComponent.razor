@@ -1,0 +1,100 @@
+﻿@inject IToastService ToastService
+<ModalHeader>
+    <ModalTitle>
+        Edit: FOO
+    </ModalTitle>
+    <CloseButton/>
+</ModalHeader>
+<ModalBody>
+    <Field Horizontal>
+        <FieldLabel ColumnSize="ColumnSize.IsFull.OnTablet.Is3.OnDesktop">
+            Name
+        </FieldLabel>
+        <FieldBody ColumnSize="ColumnSize.IsFull.OnTablet.Is9.OnDesktop">
+            <TextEdit @bind-Text="Request.Name" />
+        </FieldBody>
+    </Field>
+    <Div Margin="Margin.Is2.FromBottom.Is2.FromTop">
+        <Text Margin="Margin.Is2.FromBottom.Is2.FromTop.Is2.FromEnd">Columns</Text>
+        <Button Color="Color.Primary" Clicked="ChangeInputVisibility">Add new column</Button>
+    </Div>
+    <Div Shadow="Shadow.Default" Flex="Flex.Row" Visibility="@(IsIputShow?Visibility.Visible:Visibility.Invisible)">
+        <Div Width="Width.Is75" Margin="Margin.Is2.FromEnd">
+            <Field Horizontal>
+                <FieldLabel ColumnSize="ColumnSize.IsFull.OnTablet.Is5.OnDesktop">
+                    Column name
+                </FieldLabel>
+                <FieldBody ColumnSize="ColumnSize.IsFull.OnTablet.Is7.OnDesktop">
+                    <TextEdit @bind-Text="ColumnName" InputMode="TextInputMode.Text" />
+                </FieldBody>
+            </Field>
+        </Div>
+        <Div Width="Width.Is25">
+            <Button Color="Color.Secondary" Clicked="()=>AddEditColumn()"><Icon Name="IconName.PlusCircle" /></Button>
+        </Div>
+    </Div>
+</ModalBody>
+<ModalFooter>
+    <Button Color="Color.Success">Confirm</Button>
+    <Button Color="Color.Secondary" Clicked="ModalService.Hide">Cancel</Button>
+</ModalFooter>
+
+@code {
+    [Parameter] public Func<DefaultResponse?, Task> OnConfirm { get; set; }
+    [Inject] public IModalService ModalService { get; set; }
+    public ChangeTemplateRequest Request { get; set; } = new();
+    public string ColumnName { get; set; } = string.Empty;
+    public bool IsAdding { get; set; } = true;
+    public int ChangingColumnID { get; set; } = -1;
+    public string PrevColumnName { get; set; } = string.Empty;
+
+    public bool IsIputShow { get; set; } = false;
+
+    List<int> IDs = [];
+
+    public void ChangeInputVisibility()
+    {
+        IsIputShow = true;
+    }
+
+    private int MaxID()
+    {
+        int added = Request.AddedColumns.Select(c => c.ID).Max();
+        int deleted = Request.DeletedColumnIDs.Max();
+        int edited = Request.ChangedColumns.Select(c => c.ID).Max();
+        IDs.Clear();
+        IDs.Add(added);
+        IDs.Add(deleted);
+        IDs.Add(edited);
+        return IDs.Max();
+    }
+
+    public async Task AddEditColumn()
+    {
+        if (ColumnName == string.Empty)
+        {
+            await ToastService.Error("Column name cannot be empty");
+            return;
+        }
+
+        if (IsAdding)
+        {
+            int max = MaxID() + 1;
+            Request.AddedColumns.Add(new AddTemplateColumn()
+                {
+                    ID = max,
+                    Name = ColumnName
+                });
+            ColumnName = string.Empty;
+        }
+        else
+        {
+            var column = Request.ChangedColumns.Where(c => c.ID == ChangingColumnID).First();
+            column = new(column.ID, ColumnName);
+            ColumnName = PrevColumnName;
+            IsAdding = true;
+        }
+
+        IsIputShow = IsAdding ? false : true;
+    }
+}
