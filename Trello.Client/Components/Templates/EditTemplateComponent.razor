@@ -1,37 +1,57 @@
 ﻿@inject IToastService ToastService
 <ModalHeader>
     <ModalTitle>
-        Edit: FOO
+        Edit: @TemplateName
     </ModalTitle>
-    <CloseButton/>
+    <CloseButton />
 </ModalHeader>
 <ModalBody>
     <Field Horizontal>
-        <FieldLabel ColumnSize="ColumnSize.IsFull.OnTablet.Is3.OnDesktop">
-            Name
+        <FieldLabel ColumnSize="ColumnSize.IsFull.OnTablet.Is4.OnDesktop">
+            Template Name
         </FieldLabel>
-        <FieldBody ColumnSize="ColumnSize.IsFull.OnTablet.Is9.OnDesktop">
+        <FieldBody ColumnSize="ColumnSize.IsFull.OnTablet.Is8.OnDesktop">
             <TextEdit @bind-Text="Request.Name" />
         </FieldBody>
     </Field>
-    <Div Margin="Margin.Is2.FromBottom.Is2.FromTop">
-        <Text Margin="Margin.Is2.FromBottom.Is2.FromTop.Is2.FromEnd">Columns</Text>
-        <Button Color="Color.Primary" Clicked="ChangeInputVisibility">Add new column</Button>
-    </Div>
-    <Div Shadow="Shadow.Default" Flex="Flex.Row" Visibility="@(IsIputShow?Visibility.Visible:Visibility.Invisible)">
-        <Div Width="Width.Is75" Margin="Margin.Is2.FromEnd">
-            <Field Horizontal>
-                <FieldLabel ColumnSize="ColumnSize.IsFull.OnTablet.Is5.OnDesktop">
-                    Column name
-                </FieldLabel>
-                <FieldBody ColumnSize="ColumnSize.IsFull.OnTablet.Is7.OnDesktop">
-                    <TextEdit @bind-Text="ColumnName" InputMode="TextInputMode.Text" />
-                </FieldBody>
-            </Field>
-        </Div>
-        <Div Width="Width.Is25">
-            <Button Color="Color.Secondary" Clicked="()=>AddEditColumn()"><Icon Name="IconName.PlusCircle" /></Button>
-        </Div>
+    <Heading Size="HeadingSize.Is3">Columns:</Heading>
+    <DropContainer TItem="Temp" Items="@List" Flex="Flex.Wrap.Grow.Is1.AlignItems.Center" @ref="DropContainer">
+        <ChildContent>
+            @foreach (var c in Columns)
+            {
+                <Div Style="flex-grow:1" Flex="Flex.Column.AlignItems.Center">
+                    <Div Width="Width.Is100">
+                        <DropZone TItem="Temp" Name="@c.Name" Padding="Padding.Is3" Margin="Margin.Is3" Flex="Flex.Grow.Is1" Shadow="Shadow.Large">
+                            <Heading Size="HeadingSize.Is4" Margin="Margin.Is3.FromBottom">@c.Name - @c.ID</Heading>
+                            @if (c.ShowEdit)
+                            {
+                                <Div Flex="Flex.Row.JustifyContent.Between" Margin="Margin.Is3.FromBottom">
+                                    <Div Width="Width.Is75">
+                                        <TextEdit @bind-Text="EditColumnName" />
+                                    </Div>
+                                    <Div Margin="Margin.IsAuto.FromEnd.Is2.FromStart">
+                                        <Button Color="Color.Primary">Edit Name</Button>
+                                    </Div>
+                                </Div>
+                            }
+                            <Button Color="Color.Secondary" Clicked="()=>ShowEditField(c.ID)">Edit</Button>
+                            <Button Color="Color.Danger" Clicked="()=>DeleteColumn(c.ID)">Delete</Button>
+                        </DropZone>
+                    </Div>
+                </Div>
+            }
+        </ChildContent>
+    </DropContainer>
+    <Div Flex="Flex.Row.AlignItems.Baseline">
+        <Field Horizontal>
+            <FieldLabel ColumnSize="ColumnSize.IsFull.OnTablet.Is5.OnDesktop">
+                Column Name
+            </FieldLabel>
+            <FieldBody ColumnSize="ColumnSize.IsFull.OnTablet.Is7.OnDesktop">
+                <TextEdit @bind-Text="ColumnName" />
+            </FieldBody>
+        </Field>
+        <Button Color="Color.Success" Margin="Margin.Is5.FromStart" Clicked="AddColumn">Add</Button>
     </Div>
 </ModalBody>
 <ModalFooter>
@@ -40,36 +60,29 @@
 </ModalFooter>
 
 @code {
-    [Parameter] public Func<DefaultResponse?, Task> OnConfirm { get; set; }
     [Inject] public IModalService ModalService { get; set; }
+    [Parameter] public Func<DefaultResponse?, Task> OnConfirm { get; set; }
+    [Parameter] public string TemplateName { get; set; }
+    [Parameter] public List<EditColumnModel> Columns { get; set; }
+    private DropContainer<Temp> DropContainer = new();
+    private List<Temp> List = [];
     public ChangeTemplateRequest Request { get; set; } = new();
     public string ColumnName { get; set; } = string.Empty;
-    public bool IsAdding { get; set; } = true;
-    public int ChangingColumnID { get; set; } = -1;
-    public string PrevColumnName { get; set; } = string.Empty;
+    public string EditColumnName { get; set; } = string.Empty;
 
-    public bool IsIputShow { get; set; } = false;
-
-    List<int> IDs = [];
-
-    public void ChangeInputVisibility()
+    protected override void OnInitialized()
     {
-        IsIputShow = true;
+        base.OnInitialized();
+        Request.Name = TemplateName;
     }
 
     private int MaxID()
     {
-        int added = Request.AddedColumns.Select(c => c.ID).Max();
-        int deleted = Request.DeletedColumnIDs.Max();
-        int edited = Request.ChangedColumns.Select(c => c.ID).Max();
-        IDs.Clear();
-        IDs.Add(added);
-        IDs.Add(deleted);
-        IDs.Add(edited);
-        return IDs.Max();
+        List<int> ids = [Request.DeletedColumnIDs.Max(), Request.AddedColumns.Select(c => c.ID).Max(), Request.ChangedColumns.Select(c => c.ID).Max(), Columns.Select(c => c.ID).Max()];
+        return ids.Max();
     }
 
-    public async Task AddEditColumn()
+    public async Task AddColumn()
     {
         if (ColumnName == string.Empty)
         {
@@ -77,24 +90,55 @@
             return;
         }
 
-        if (IsAdding)
-        {
-            int max = MaxID() + 1;
-            Request.AddedColumns.Add(new AddTemplateColumn()
-                {
-                    ID = max,
-                    Name = ColumnName
-                });
-            ColumnName = string.Empty;
-        }
-        else
-        {
-            var column = Request.ChangedColumns.Where(c => c.ID == ChangingColumnID).First();
-            column = new(column.ID, ColumnName);
-            ColumnName = PrevColumnName;
-            IsAdding = true;
-        }
+        int max = MaxID() + 1;
 
-        IsIputShow = IsAdding ? false : true;
+        Request.AddedColumns.Add(new AddTemplateColumn()
+            {
+                ID = max,
+                Name = ColumnName
+            });
+        Columns.Add(new EditColumnModel()
+            {
+                ID = max,
+                Name = ColumnName
+            });
+        DropContainer.Refresh();
+        StateHasChanged();
     }
+
+    public void ShowEditField(int ID)
+    {
+        Columns.Where(c => c.ID == ID).First().ShowEdit = true;
+        DropContainer.Refresh();
+        StateHasChanged();
+    }
+
+    public async Task EditColumn(int ID)
+    {
+        if(EditColumnName == string.Empty)
+        {
+            await ToastService.Error("Column name cannot be empty");
+            return;
+        }
+        var column = Columns.Where(c => c.ID == ID).First();
+        column.Name = EditColumnName;
+        Request.ChangedColumns.Add(new ChangedColumn(ID, EditColumnName));
+        column.ShowEdit = false;
+        EditColumnName = string.Empty;
+        DropContainer.Refresh();
+        StateHasChanged();
+    }
+
+    public void DeleteColumn(int ID)
+    {
+        Columns.RemoveAll(c => c.ID == ID);
+        Request.DeletedColumnIDs.Add(ID);
+
+        DropContainer.Refresh();
+        StateHasChanged();
+        DropContainer.Refresh();
+        StateHasChanged();
+    }
+
+    private class Temp { }
 }

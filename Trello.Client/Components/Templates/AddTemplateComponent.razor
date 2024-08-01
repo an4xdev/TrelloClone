@@ -23,7 +23,7 @@
                 <Div Style="flex-grow:1" Flex="Flex.Column.AlignItems.Center">
                     <Div Width="Width.Is100">
                         <DropZone TItem="Temp" Name="@c.Name" Padding="Padding.Is3" Margin="Margin.Is3" Flex="Flex.Grow.Is1" Shadow="Shadow.Large">
-                            <Heading Size="HeadingSize.Is4" Margin="Margin.Is3.FromBottom">@c.Name - @c.ID</Heading>
+                            <Heading Size="HeadingSize.Is4" Margin="Margin.Is3.FromBottom">@c.Name</Heading>
                             @if(VisibleEdit[c.ID - 1])
                             {
                                 <Div Flex="Flex.Row.JustifyContent.Between" Margin="Margin.Is3.FromBottom">
@@ -63,8 +63,8 @@
     <Button Color="Color.Secondary" Clicked="ModalService.Hide">Cancel</Button>
 </ModalFooter>
 @code {
-    [Parameter] public Func<AddTemplateResponse?, Task> OnConfirm { get; set; }
     [Inject] public IModalService ModalService { get; set; }
+    [Parameter] public Func<AddTemplateResponse?, Task> OnConfirm { get; set; }
     private DropContainer<Temp> DropContainer = new();
     public AddTemplateRequest Request { get; set; } = new();
     private List<Temp> List = [];
@@ -129,6 +129,7 @@
         }
         var column = Request.Columns.Where(c => c.ID == ID).First();
         column.Name = EditColumnName;
+        EditColumnName = string.Empty;
         VisibleEdit[ID - 1] = false;
         DropContainer.Refresh();
         StateHasChanged();

@@ -17,7 +17,7 @@
                         Template: @t.Name
                     </CardTitle>
                     <Button Color="Color.Primary" Clicked="()=>ShowInfoTemplate(t.ID)"><Icon Name="IconName.InfoCircle"/></Button>
-                    <Button Color="Color.Secondary"><Icon Name="IconName.Edit"/></Button>
+                    <Button Color="Color.Secondary" Clicked="()=>ShowEditTemplate(t.ID)"><Icon Name="IconName.Edit"/></Button>
                     <Button Color="Color.Danger" Clicked="()=>RemoveTemplate(t.ID)"><Icon Name="IconName.Delete"/></Button>
                 </CardBody>
             </Card>
@@ -103,6 +103,21 @@
             await ToastService.Error(response.Message);
         }
 
+    }
+
+    public async Task ShowEditTemplate(int ID)
+    {
+        var template = templates.Where(t => t.ID == ID).First();
+        await ModalService.Show<EditTemplateComponent>(x =>
+        {
+            x.Add(x => x.OnConfirm, null);
+            x.Add(x => x.TemplateName, template.Name);
+            x.Add(x => x.Columns, template.Columns.Select(c => new EditColumnModel()
+                {
+                    ID = c.ID,
+                    Name = c.Name
+                }).ToList());
+        }, new ModalInstanceOptions() { UseModalStructure = false, Size = ModalSize.ExtraLarge });
     }
 
     public async Task RemoveTemplate(int ID)
