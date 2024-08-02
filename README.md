@@ -23,7 +23,7 @@ The main point of the application will be project planning, just like in the ori
 - Templates:
   - API:
     - [x] Adding
-    - [ ] Editing
+    - [x] Editing
     - [x] Deleting  
   - Client:
     - [x] Adding
