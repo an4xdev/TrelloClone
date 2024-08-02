@@ -117,6 +117,57 @@ public class TemplateController(AppDbContext context) : ControllerBase
         return await Task.FromResult(response);
     }
 
+    [HttpPut]
+    public async Task<DefaultResponse> Update(ChangeTemplateRequest request)
+    {
+        var response = new DefaultResponse();
+
+        var template = context.Templates.Where(t => t.ID == request.ID).First();
+
+        if (template == null)
+        {
+            response.IsSuccess = false;
+            response.Message = "Unknow template to edit.";
+            return await Task.FromResult(response);
+        }
+
+        if (request.Name != string.Empty)
+        {
+            template.Name = request.Name;
+        }
+
+        foreach (var c in request.DeletedColumnIDs)
+        {
+            var column = context.Columns.Where(cc => cc.ID == c).First();
+            if (column == null)
+            {
+                response.IsSuccess = false;
+                response.Message = "Unknown column to delete";
+                return await Task.FromResult(response);
+            }
+            context.Columns.Remove(column);
+        }
+
+        request.AddedColumns.ForEach(c =>
+            context.Columns.Add(new Column()
+            {
+                Name = c.Name,
+                TemplateID = template.ID,
+                Template = template
+            })
+        );
+
+        request.ChangedColumns.ForEach(c =>
+        {
+            var column = context.Columns.Where(cc => cc.ID == c.ID).First();
+            column.Name = c.Name;
+        });
+
+        await context.SaveChangesAsync();
+
+        return await Task.FromResult(response);
+    }
+
     [HttpDelete("{id}")]
     public async Task<DefaultResponse> DeleteTemplate(int id)
     {

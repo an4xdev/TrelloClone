@@ -76,11 +76,7 @@
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        Request.Columns.Add(new AddTemplateColumn()
-            {
-                ID = 1,
-                Name = "Placehoder"
-            });
+        Request.Columns.Add(new AddTemplateColumn(1, "Placehoder"));
         VisibleEdit.Add(false);
     }
 
@@ -100,11 +96,7 @@
             StateHasChanged();
         }
         int max = Request.Columns.Count == 0 ? 1 : Request.Columns.Select(c => c.ID).Max() + 1;
-        Request.Columns.Add(new AddTemplateColumn()
-            {
-                ID = max,
-                Name = ColumnName
-            });
+        Request.Columns.Add(new AddTemplateColumn(max, ColumnName));
         VisibleEdit.Add(false);
         DropContainer.Refresh();
         StateHasChanged();
@@ -128,7 +120,7 @@
             return;
         }
         var column = Request.Columns.Where(c => c.ID == ID).First();
-        column.Name = EditColumnName;
+        column = new AddTemplateColumn(column.ID, EditColumnName);
         EditColumnName = string.Empty;
         VisibleEdit[ID - 1] = false;
         DropContainer.Refresh();

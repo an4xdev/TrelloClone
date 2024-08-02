@@ -30,7 +30,7 @@
                                         <TextEdit @bind-Text="EditColumnName" />
                                     </Div>
                                     <Div Margin="Margin.IsAuto.FromEnd.Is2.FromStart">
-                                        <Button Color="Color.Primary">Edit Name</Button>
+                                        <Button Color="Color.Primary" Clicked="()=>EditColumn(c.ID)">Edit Name</Button>
                                     </Div>
                                 </Div>
                             }
@@ -55,7 +55,7 @@
     </Div>
 </ModalBody>
 <ModalFooter>
-    <Button Color="Color.Success">Confirm</Button>
+    <Button Color="Color.Success" Clicked="Confirm">Confirm</Button>
     <Button Color="Color.Secondary" Clicked="ModalService.Hide">Cancel</Button>
 </ModalFooter>
 
@@ -78,9 +78,14 @@
 
     private int MaxID()
     {
-        List<int> ids = [Request.DeletedColumnIDs.Max(), Request.AddedColumns.Select(c => c.ID).Max(), Request.ChangedColumns.Select(c => c.ID).Max(), Columns.Select(c => c.ID).Max()];
+        List<int> ids = [
+            Request.DeletedColumnIDs.Count == 0 ? 0 : Request.DeletedColumnIDs.Max(),
+            Request.AddedColumns.Count == 0 ? 0 : Request.AddedColumns.Select(c => c.ID).Max(),
+            Request.ChangedColumns.Count == 0 ? 0 : Request.ChangedColumns.Select(c => c.ID).Max(),
+            Columns.Count == 0 ? 0 : Columns.Select(c => c.ID).Max()
+        ];
         return ids.Max();
-    }
+    } 
 
     public async Task AddColumn()
     {
@@ -92,11 +97,7 @@
 
         int max = MaxID() + 1;
 
-        Request.AddedColumns.Add(new AddTemplateColumn()
-            {
-                ID = max,
-                Name = ColumnName
-            });
+        Request.AddedColumns.Add(new AddTemplateColumn(max, ColumnName));
         Columns.Add(new EditColumnModel()
             {
                 ID = max,
@@ -138,6 +139,93 @@
         StateHasChanged();
         DropContainer.Refresh();
         StateHasChanged();
+    }
+
+    private void Print()
+    {
+        Console.WriteLine($"Template Name: {Request.Name}");
+        Console.WriteLine("    ADDED:");
+        Request.AddedColumns.ForEach(c => Console.WriteLine($"        ID: {c.ID} => Name: {c.Name}"));
+        Console.WriteLine("    EDITED:");
+        Request.ChangedColumns.ForEach(c => Console.WriteLine($"        ID: {c.ID} => Name: {c.Name}"));
+        Console.WriteLine("    DELETED:");
+        Request.DeletedColumnIDs.ForEach(c => Console.WriteLine($"        ID: {c}"));
+    }
+
+    private async Task Confirm()
+    {
+        Print();
+
+        if(Request.Name == TemplateName)
+        {
+            Request.Name = string.Empty;
+        }
+
+        // Batching Added and Changed columns
+
+        List<int> batchAE = [];
+
+        foreach(var c in Request.AddedColumns)
+        {
+            var col = Request.ChangedColumns.Where(cc => cc.ID == c.ID).FirstOrDefault();
+            if(col != null)
+            {
+                batchAE.Add(c.ID);
+            }
+        }
+
+        batchAE.ForEach(c =>
+        {
+            // remove from added
+            Request.AddedColumns.RemoveAll(cc => cc.ID == c);
+            // get from changed
+            var col = Request.ChangedColumns.Where(cc => cc.ID == c).First();
+            // remove from changed
+            Request.ChangedColumns.RemoveAll(cc => cc.ID == c);
+            // assing to added
+            Request.AddedColumns.Add(new AddTemplateColumn(col.ID, col.Name));
+        });
+
+        // Batching Added and Deleted, if a column was added and after deleted, the entry was deleted from two places
+
+        List<int> batchAD = [];
+
+        foreach(var c in Request.DeletedColumnIDs)
+        {
+            var col = Request.AddedColumns.Where(cc => cc.ID == c).FirstOrDefault();
+            if(col != null)
+            {
+                batchAD.Add(c);
+            }
+        }
+
+        batchAD.ForEach(c =>
+        {
+            Request.DeletedColumnIDs.Remove(c);
+            Request.AddedColumns.RemoveAll(cc => cc.ID == c);
+        });
+
+        // Batching Edited and Deleted, if a column was changed and after deleted, the entry was deleted from two places
+
+        List<int> batchCD = [];
+
+        foreach (var c in Request.DeletedColumnIDs)
+        {
+            var col = Request.ChangedColumns.Where(cc => cc.ID == c).FirstOrDefault();
+            if (col != null)
+            {
+                batchCD.Add(c);
+            }
+        }
+
+        batchCD.ForEach(c =>
+        {
+            // Request.DeletedColumnIDs.Remove(c);
+            Request.ChangedColumns.RemoveAll(cc => cc.ID == c);
+        });
+
+        Print();
+
     }
 
     private class Temp { }
