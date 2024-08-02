@@ -72,7 +72,7 @@ public class TemplateController(AppDbContext context) : ControllerBase
         return await Task.FromResult(response);
     }
 
-    [HttpPost("add")]
+    [HttpPost]
     public async Task<AddTemplateResponse> AddTemplate(AddTemplateRequest request)
     {
         var response = new AddTemplateResponse();
@@ -148,22 +148,32 @@ public class TemplateController(AppDbContext context) : ControllerBase
             context.Columns.Remove(column);
         }
 
-        request.AddedColumns.ForEach(c =>
+        foreach (var c in request.AddedColumns)
+        {
             context.Columns.Add(new Column()
             {
                 Name = c.Name,
+                Template = template,
                 TemplateID = template.ID,
-                Template = template
-            })
-        );
+            });
+        }
 
-        request.ChangedColumns.ForEach(c =>
+        foreach (var c in request.ChangedColumns)
         {
-            var column = context.Columns.Where(cc => cc.ID == c.ID).First();
-            column.Name = c.Name;
-        });
+            var col = context.Columns.Where(c => c.ID == c.ID).First();
+            if (col == null)
+            {
+                response.IsSuccess = false;
+                response.Message = "Unknown columnd to edit.";
+                return await Task.FromResult(response);
+            }
+            col.Name = c.Name;
+        }
 
         await context.SaveChangesAsync();
+
+        response.IsSuccess = true;
+        response.Message = $"Succesfully edited template {template.Name}.";
 
         return await Task.FromResult(response);
     }

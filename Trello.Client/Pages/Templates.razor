@@ -110,7 +110,8 @@
         var template = templates.Where(t => t.ID == ID).First();
         await ModalService.Show<EditTemplateComponent>(x =>
         {
-            x.Add(x => x.OnConfirm, null);
+            x.Add(x => x.TemplateID, ID);
+            x.Add(x => x.OnConfirm, TemaplateEdited);
             x.Add(x => x.TemplateName, template.Name);
             x.Add(x => x.Columns, template.Columns.Select(c => new EditColumnModel()
                 {
@@ -118,6 +119,40 @@
                     Name = c.Name
                 }).ToList());
         }, new ModalInstanceOptions() { UseModalStructure = false, Size = ModalSize.ExtraLarge });
+    }
+
+    public async Task TemaplateEdited(DefaultResponse? response, int ID)
+    {
+        if(response == null)
+        {
+            await ToastService.Error("Error with processing request.");
+            return;
+        }
+
+        if (response.IsSuccess)
+        {
+            templates.RemoveAll(t => t.ID == ID);
+
+            var httpClient = clientFactory.CreateClient("API");
+
+            var templateResposne = await httpClient.GetFromJsonAsync<TemplateDTO>($"/api/template/{ID}");
+
+            if (templateResposne == null)
+            {
+                await ToastService.Error("Error with retrieving edited template");
+            }
+            else
+            {
+                templates.Add(templateResposne);
+                templates.Sort((x, y) => x.ID.CompareTo(y.ID));
+                await ToastService.Success(response.Message);
+            }
+
+        }
+        else
+        {
+            await ToastService.Error(response.Message);
+        }
     }
 
     public async Task RemoveTemplate(int ID)

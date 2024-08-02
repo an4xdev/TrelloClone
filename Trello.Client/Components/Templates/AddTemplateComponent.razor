@@ -151,7 +151,7 @@
             return;
         }
         var httpClient = clientFactory.CreateClient("API");
-        var response = await httpClient.PostAsJsonAsync<AddTemplateRequest>("/api/template/add", Request);
+        var response = await httpClient.PostAsJsonAsync<AddTemplateRequest>("/api/template", Request);
         if(response == null)
         {
             await OnConfirm(null);

@@ -1,4 +1,5 @@
 ﻿@inject IToastService ToastService
+@inject IHttpClientFactory clientFactory
 <ModalHeader>
     <ModalTitle>
         Edit: @TemplateName
@@ -61,9 +62,10 @@
 
 @code {
     [Inject] public IModalService ModalService { get; set; }
-    [Parameter] public Func<DefaultResponse?, Task> OnConfirm { get; set; }
+    [Parameter] public Func<DefaultResponse?,int, Task> OnConfirm { get; set; }
     [Parameter] public string TemplateName { get; set; }
     [Parameter] public List<EditColumnModel> Columns { get; set; }
+    [Parameter] public int TemplateID { get; set; }
     private DropContainer<Temp> DropContainer = new();
     private List<Temp> List = [];
     public ChangeTemplateRequest Request { get; set; } = new();
@@ -80,9 +82,9 @@
     {
         List<int> ids = [
             Request.DeletedColumnIDs.Count == 0 ? 0 : Request.DeletedColumnIDs.Max(),
-            Request.AddedColumns.Count == 0 ? 0 : Request.AddedColumns.Select(c => c.ID).Max(),
-            Request.ChangedColumns.Count == 0 ? 0 : Request.ChangedColumns.Select(c => c.ID).Max(),
-            Columns.Count == 0 ? 0 : Columns.Select(c => c.ID).Max()
+        Request.AddedColumns.Count == 0 ? 0 : Request.AddedColumns.Select(c => c.ID).Max(),
+        Request.ChangedColumns.Count == 0 ? 0 : Request.ChangedColumns.Select(c => c.ID).Max(),
+        Columns.Count == 0 ? 0 : Columns.Select(c => c.ID).Max()
         ];
         return ids.Max();
     } 
@@ -154,7 +156,7 @@
 
     private async Task Confirm()
     {
-        Print();
+        // Print();
 
         if(Request.Name == TemplateName)
         {
@@ -224,8 +226,20 @@
             Request.ChangedColumns.RemoveAll(cc => cc.ID == c);
         });
 
-        Print();
+        // Print();
 
+        var httpClient = clientFactory.CreateClient("API");
+        var response = await httpClient.PutAsJsonAsync<ChangeTemplateRequest>("/api/template/", Request);
+
+        if (response == null)
+        {
+            await OnConfirm(null, TemplateID);
+            return;
+        }
+        var content = await response.Content.ReadFromJsonAsync<DefaultResponse>();
+        await OnConfirm(content, TemplateID);
+
+        await ModalService.Hide();
     }
 
     private class Temp { }
