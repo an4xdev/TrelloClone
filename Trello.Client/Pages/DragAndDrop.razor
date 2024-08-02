@@ -20,13 +20,15 @@
                 <Div Style="flex-grow:1" Flex="Flex.Column.AlignItems.Center">
                     <Div Width="Width.Is100">
                         <DropZone TItem="DropItem" Name="@c.Name" Padding="Padding.Is3" Margin="Margin.Is3" Flex="Flex.Grow.Is1" Shadow="Shadow.Large">
-                            <Heading Size="HeadingSize.Is4" Margin="Margin.Is3.FromBottom">@c.Name</Heading>
-                            @if(c.MarkAsDone)
-                            {
-                                <Tooltip Text="Tasks in this column are marked as done for statistics">
-                                    <Icon Name="IconName.InfoCircle" />
-                                </Tooltip>
-                            }
+                            <Div Flex="Flex.JustifyContent.Between">
+                                <Heading Size="HeadingSize.Is4" Margin="Margin.Is3.FromBottom">@c.Name</Heading>
+                                @if(c.MarkAsDone)
+                                {
+                                    <Tooltip Text="Tasks in this column are marked as done for statistics">
+                                        <Icon Name="IconName.InfoCircle" />
+                                    </Tooltip>
+                                }
+                            </Div>
                         </DropZone>
                     </Div>
                     <Div Display="Display.Flex">
@@ -50,7 +52,6 @@
                     <Button Color="Color.Secondary" Clicked="()=>ShowEditModal(context)"><Icon Name="IconName.Edit" /></Button>
                     <Button Color="Color.Danger" Clicked="()=>ShowDeleteModal(context)"><Icon Name="IconName.Delete" /></Button>
                 </Div>
-                
             </Div>
         </ItemTemplate>
     </DropContainer>
@@ -65,6 +66,8 @@
 
     [Parameter]
     public int? ProjectID { get; set; }
+
+    public int TemplateID;
 
     private int foo;
 
@@ -88,6 +91,7 @@
         ColumnModels = [];
 
         Items = [];
+        TemplateID = response.Template.ID;
         response.Template.Columns.ForEach(c => c.Items.ForEach(i =>
         {
             Items.Add(new DropItem(c, i));
@@ -126,10 +130,38 @@
             new ModalInstanceOptions() { UseModalStructure = false });
     }
 
-    // TODO: add parameter of function to make changes in UI when api response
     public Task ShowAddColumnModal()
     {
-        return ModalService.Show<AddColumnComponent>("Add new column");
+        return ModalService.Show<AddColumnComponent>(x=>
+        {
+            x.Add(x => x.OnConfirm, ColumnAdded);
+            x.Add(x => x.TemplateID, TemplateID);
+        }, new ModalInstanceOptions() {UseModalStructure = false});
+    }
+
+    private async Task ColumnAdded(AddColumnResponse? response)
+    {
+        if(response == null)
+        {
+            await ToastService.Error("Error with processing request.");
+            return;
+        }
+
+        if(!response.IsSuccess)
+        {
+            await ToastService.Error(response.Message);
+            return;
+        }
+
+        ColumnModels.Add(new ColumnModel()
+            {
+                ID = response.AddedID,
+                Name = response.Name,
+                MarkAsDone = response.MarkAsDone
+            });
+
+        DropContainer.Refresh();
+        StateHasChanged();
     }
 
     public Task ShowExtendedAddTask()
@@ -160,17 +192,16 @@
             await ToastService.Error("Error with processing request.");
             return;
         }
-        if(response.IsSuccess)
-        {
-            Items.Add(added);
-            await ToastService.Success(response.Message);
-            DropContainer.Refresh();
-            StateHasChanged();
-        }
-        else
+        if(!response.IsSuccess)
         {
             await ToastService.Error(response.Message);
+            return;
         }
+
+        Items.Add(added);
+        await ToastService.Success(response.Message);
+        DropContainer.Refresh();
+        StateHasChanged();
     }
 
     private async Task ChangedTask(DefaultResponse? response, DropItem? changed)
@@ -181,19 +212,18 @@
             return;
         }
 
-        if(response.IsSuccess)
-        {
-            var item = Items.Where(i => i.ID == changed.ID).First();
-            item.Name = changed.Name;
-            item.Description = changed.Description;
-            await ToastService.Success(response.Message); 
-            DropContainer.Refresh();
-            StateHasChanged();
-        }
-        else
+        if(!response.IsSuccess)
         {
             await ToastService.Error(response.Message);
+            return;
         }
+
+        var item = Items.Where(i => i.ID == changed.ID).First();
+        item.Name = changed.Name;
+        item.Description = changed.Description;
+        await ToastService.Success(response.Message); 
+        DropContainer.Refresh();
+        StateHasChanged();
 
     }
 
@@ -204,18 +234,15 @@
             await ToastService.Error("Error with processing request.");
             return;
         }
-
-        if (response.IsSuccess)
-        {
-            Items.RemoveAll(i => i.ID == itemID);
-            await ToastService.Success(response.Message);
-            DropContainer.Refresh();
-            StateHasChanged();
-        }
-        else
+        if (!response.IsSuccess)
         {
             await ToastService.Error(response.Message);
+            return;
         }
-        
+
+        Items.RemoveAll(i => i.ID == itemID);
+        await ToastService.Success(response.Message);
+        DropContainer.Refresh();
+        StateHasChanged();
     }
 }

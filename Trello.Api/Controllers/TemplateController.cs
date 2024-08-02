@@ -117,6 +117,41 @@ public class TemplateController(AppDbContext context) : ControllerBase
         return await Task.FromResult(response);
     }
 
+    [HttpPost("column")]
+    public async Task<AddColumnResponse> AddNewColumn(AddColumnRequest request)
+    {
+        var response = new AddColumnResponse();
+
+        var template = await context.Templates.Where(t => t.ID == request.TemplateID).FirstOrDefaultAsync();
+
+        if (template == null)
+        {
+            response.IsSuccess = false;
+            response.Message = "Unknown template to request to add a new column.";
+            return await Task.FromResult(response);
+        }
+
+        var column = new Column()
+        {
+            Name = request.Name,
+            TemplateID = template.ID,
+            Template = template,
+            MarkAsDone = request.MarkAsDone
+        };
+
+        context.Columns.Add(column);
+
+        await context.SaveChangesAsync();
+
+        response.IsSuccess = true;
+        response.Message = "Succesfully added new column";
+        response.AddedID = column.ID;
+        response.MarkAsDone = request.MarkAsDone;
+        response.Name = request.Name;
+
+        return await Task.FromResult(response);
+    }
+
     [HttpPut]
     public async Task<DefaultResponse> Update(ChangeTemplateRequest request)
     {

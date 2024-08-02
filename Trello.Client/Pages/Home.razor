@@ -123,15 +123,14 @@
             return;
         }
 
-        if(response.IsSuccess)
-        {
-            await ToastService.Success(response.Message);
-            navigationManager.NavigateTo($"/drag/{response.AddedID}");
-        }
-        else
+        if(!response.IsSuccess)
         {
             await ToastService.Error(response.Message);
+            return;
         }
+
+        await ToastService.Success(response.Message);
+        navigationManager.NavigateTo($"/drag/{response.AddedID}");
 
     }
 
@@ -143,19 +142,18 @@
             return;
         }
 
-        if(response.IsSuccess)
-        {
-            var project = projects.Where(p => p.Id == request.ID).First();
-            project.Name = request.Name;
-            project.Description = request.Description;
-            project.TemplateID = request.TemplateID;
-            StateHasChanged();
-            await ToastService.Success(response.Message);
-        }
-        else
+        if(!response.IsSuccess)
         {
             await ToastService.Error(response.Message);
+            return;
         }
+
+        var project = projects.Where(p => p.Id == request.ID).First();
+        project.Name = request.Name;
+        project.Description = request.Description;
+        project.TemplateID = request.TemplateID;
+        StateHasChanged();
+        await ToastService.Success(response.Message);
 
     }
 
@@ -167,15 +165,13 @@
             return;
         }
 
-        if (response.IsSuccess)
-        {
-            projects.RemoveAll(p => p.Id == projectID);
-            await ToastService.Success(response.Message);
-        }
-        else
+        if(!response.IsSuccess)
         {
             await ToastService.Error(response.Message);
+            return;
         }
-        
+
+        projects.RemoveAll(p => p.Id == projectID);
+        await ToastService.Success(response.Message);
     }
 }

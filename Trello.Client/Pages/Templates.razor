@@ -81,27 +81,25 @@
             return;
         }
 
-        if(response.IsSuccess)
-        {
-            var httpClient = clientFactory.CreateClient("API");
-
-            var templateResposne = await httpClient.GetFromJsonAsync<TemplateDTO>($"/api/template/{response.AddedID}");
-
-            if (templateResposne == null)
-            {
-                await ToastService.Error("Error with retrieving new added template");
-            }
-            else
-            {
-                templates.Add(templateResposne);
-                await ToastService.Success(response.Message);
-            }
-
-        }
-        else
+        if(!response.IsSuccess)
         {
             await ToastService.Error(response.Message);
+            return;
         }
+
+
+        var httpClient = clientFactory.CreateClient("API");
+
+        var templateResposne = await httpClient.GetFromJsonAsync<TemplateDTO>($"/api/template/{response.AddedID}");
+
+        if (templateResposne == null)
+        {
+            await ToastService.Error("Error with retrieving new added template");
+            return;
+        }
+
+        templates.Add(templateResposne);
+        await ToastService.Success(response.Message);
 
     }
 
@@ -129,30 +127,29 @@
             return;
         }
 
-        if (response.IsSuccess)
-        {
-            templates.RemoveAll(t => t.ID == ID);
 
-            var httpClient = clientFactory.CreateClient("API");
-
-            var templateResposne = await httpClient.GetFromJsonAsync<TemplateDTO>($"/api/template/{ID}");
-
-            if (templateResposne == null)
-            {
-                await ToastService.Error("Error with retrieving edited template");
-            }
-            else
-            {
-                templates.Add(templateResposne);
-                templates.Sort((x, y) => x.ID.CompareTo(y.ID));
-                await ToastService.Success(response.Message);
-            }
-
-        }
-        else
+        if (!response.IsSuccess)
         {
             await ToastService.Error(response.Message);
+            return;
         }
+
+        templates.RemoveAll(t => t.ID == ID);
+
+        var httpClient = clientFactory.CreateClient("API");
+
+        var templateResposne = await httpClient.GetFromJsonAsync<TemplateDTO>($"/api/template/{ID}");
+
+        if (templateResposne == null)
+        {
+            await ToastService.Error("Error with retrieving edited template");
+            return;
+        }
+
+        templates.Add(templateResposne);
+        templates.Sort((x, y) => x.ID.CompareTo(y.ID));
+        await ToastService.Success(response.Message);
+
     }
 
     public async Task RemoveTemplate(int ID)
@@ -167,15 +164,14 @@
             return;
         }
 
-        if(response.IsSuccess)
-        {
-            await ToastService.Success(response.Message);
-            templates.RemoveAll(t => t.ID == ID);
-        }
-        else
+        if(!response.IsSuccess)
         {
             await ToastService.Error(response.Message);
+            return;
         }
-        
+
+        await ToastService.Success(response.Message);
+        templates.RemoveAll(t => t.ID == ID);
+
     }
 }
