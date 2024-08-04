@@ -15,4 +15,6 @@ public class Item
 
     public int ColumnID { get; set; }
     public Column Column { get; set; } = null!;
+
+    public List<ItemTag> ItemTags { get; } = [];
 }

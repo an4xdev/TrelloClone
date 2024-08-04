@@ -216,7 +216,6 @@ public class TemplateController(AppDbContext context) : ControllerBase
     [HttpDelete("{id}")]
     public async Task<DefaultResponse> DeleteTemplate(int id)
     {
-
         DefaultResponse response = new();
 
         var template = await context.Templates.Where(t => t.ID == id).FirstOrDefaultAsync();

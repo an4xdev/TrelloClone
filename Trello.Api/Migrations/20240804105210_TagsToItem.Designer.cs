@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Trello.Api.Database;
 
@@ -11,9 +12,11 @@ using Trello.Api.Database;
 namespace Trello.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240804105210_TagsToItem")]
+    partial class TagsToItem
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -203,31 +206,9 @@ namespace Trello.Api.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("TagColorID")
-                        .HasColumnType("int");
-
                     b.HasKey("ID");
-
-                    b.HasIndex("TagColorID");
 
                     b.ToTable("Tag");
-                });
-
-            modelBuilder.Entity("Trello.Api.Models.TagColor", b =>
-                {
-                    b.Property<int>("ID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"));
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("ID");
-
-                    b.ToTable("TagColor");
                 });
 
             modelBuilder.Entity("Trello.Api.Models.Template", b =>
@@ -333,17 +314,6 @@ namespace Trello.Api.Migrations
                     b.Navigation("Template");
                 });
 
-            modelBuilder.Entity("Trello.Api.Models.Tag", b =>
-                {
-                    b.HasOne("Trello.Api.Models.TagColor", "TagColor")
-                        .WithMany("Tags")
-                        .HasForeignKey("TagColorID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("TagColor");
-                });
-
             modelBuilder.Entity("Trello.Api.Models.Column", b =>
                 {
                     b.Navigation("Items");
@@ -362,11 +332,6 @@ namespace Trello.Api.Migrations
             modelBuilder.Entity("Trello.Api.Models.Tag", b =>
                 {
                     b.Navigation("ItemTags");
-                });
-
-            modelBuilder.Entity("Trello.Api.Models.TagColor", b =>
-                {
-                    b.Navigation("Tags");
                 });
 
             modelBuilder.Entity("Trello.Api.Models.Template", b =>
