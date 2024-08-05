@@ -42,6 +42,8 @@ public class ProjectController(AppDbContext context) : ControllerBase
             .Include(p => p.Template)
                 .ThenInclude(t => t.Columns)
             .Include(p => p.Items)
+                .ThenInclude(i => i.Tags)
+                    .ThenInclude(t => t.Tag)
             .FirstOrDefaultAsync();
 
         var projectDTO = new ProjectDTO
@@ -63,6 +65,7 @@ public class ProjectController(AppDbContext context) : ControllerBase
                         Name = i.Name,
                         Description = i.Description,
                         DoneDate = i.DoneDate,
+                        Tags = i.Tags.Select(t => new TagDTO { ID = t.Tag.ID, BackgroundColor = t.Tag.BackgroundColor, Name = t.Tag.Name, FontColor = t.Tag.FontColor }).ToList(),
                     }).ToList()
                 }).ToList()
             },
@@ -70,7 +73,9 @@ public class ProjectController(AppDbContext context) : ControllerBase
             {
                 ID = i.ID,
                 Name = i.Name,
-                Description = i.Description
+                Description = i.Description,
+                DoneDate = i.DoneDate,
+                Tags = i.Tags.Select(t => new TagDTO { ID = t.Tag.ID, BackgroundColor = t.Tag.BackgroundColor, Name = t.Tag.Name, FontColor = t.Tag.FontColor }).ToList(),
             }).ToList()
         };
 

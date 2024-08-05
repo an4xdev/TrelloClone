@@ -10,6 +10,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Item> Items { get; set; }
     public DbSet<Template> Templates { get; set; }
     public DbSet<Column> Columns { get; set; }
+    public DbSet<Tag> Tags { get; set; }
+    public DbSet<ItemTag> ItemTags { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -57,10 +59,29 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
         modelBuilder.Entity<Project>().HasData(new Project { ID = 1, Name = "Default Project", TemplateID = 1, Description = "Default description of default project." });
 
+        modelBuilder.Entity<Tag>().HasData(
+            new Tag { ID = 1, Name = "High Priority", BackgroundColor = "#FF5733", FontColor = "#FFFFFF" },
+            new Tag { ID = 2, Name = "Medium Priority", BackgroundColor = "#FFC300", FontColor = "#000000" },
+            new Tag { ID = 3, Name = "Low Priority", BackgroundColor = "#DAF7A6", FontColor = "#000000" },
+            new Tag { ID = 4, Name = "Completed", BackgroundColor = "#33FF57", FontColor = "#000000" },
+            new Tag { ID = 5, Name = "In Progress", BackgroundColor = "#33C1FF", FontColor = "#FFFFFF" },
+            new Tag { ID = 6, Name = "On Hold", BackgroundColor = "#8E44AD", FontColor = "#FFFFFF" },
+            new Tag { ID = 7, Name = "Review", BackgroundColor = "#FF33A6", FontColor = "#FFFFFF" },
+            new Tag { ID = 8, Name = "New", BackgroundColor = "#2E4053", FontColor = "#FFFFFF" },
+            new Tag { ID = 9, Name = "Scheduled", BackgroundColor = "#7DCEA0", FontColor = "#000000" },
+            new Tag { ID = 10, Name = "Urgent", BackgroundColor = "#F39C12", FontColor = "#000000" }
+        );
+
         modelBuilder.Entity<Item>().HasData(
             new Item { ID = 1, Name = "Get ready", Description = "Get ready to your project", ProjectID = 1, ColumnID = 1 },
             new Item { ID = 2, Name = "Plan it", Description = "You are planning your project", ProjectID = 1, ColumnID = 2 },
             new Item { ID = 3, Name = "Pet capybara", Description = "You petted capybara", ProjectID = 1, ColumnID = 3, DoneDate = DateOnly.FromDateTime(DateTime.Now) }
+        );
+
+        modelBuilder.Entity<ItemTag>().HasData(
+            new ItemTag { ID = 1, ItemID = 1, TagID = 1 },
+            new ItemTag { ID = 2, ItemID = 2, TagID = 5 },
+            new ItemTag { ID = 3, ItemID = 3, TagID = 4 }
         );
 
     }

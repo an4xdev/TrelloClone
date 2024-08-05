@@ -68,7 +68,7 @@
         else
         {
             var content = await response.Content.ReadFromJsonAsync<AddItemResponse>();
-            DropItem added = new(content.AddedID, Name, Columns.Where(c=>c.ID == Value).First().Name, Description, null);
+            DropItem added = new(content.AddedID, Name, Columns.Where(c=>c.ID == Value).First().Name, Description, null, []);
             await OnConfirm(content, added);
         }
 

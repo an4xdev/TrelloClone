@@ -4,11 +4,9 @@ public class Tag
 {
     public int ID { get; set; }
     public required string Name { get; set; } = string.Empty;
+    public required string BackgroundColor { get; set; } = string.Empty;
+    public required string FontColor { get; set; } = string.Empty;
+    public ICollection<ItemTag> Items { get; } = [];
 
-    public List<ItemTag> ItemTags { get; } = [];
-
-    public int TagColorID { get; set; }
-
-    public TagColor TagColor { get; set; } = null!;
 }
 

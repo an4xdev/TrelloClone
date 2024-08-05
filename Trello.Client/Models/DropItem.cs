@@ -13,13 +13,16 @@ namespace Trello.Client.Models
 
         public DateOnly? DoneDate { get; set; }
 
-        public DropItem(int id, string name, string group, string description, DateOnly? doneDate)
+        public List<TagDTO> Tags { get; set; }
+
+        public DropItem(int id, string name, string group, string description, DateOnly? doneDate, List<TagDTO> tags)
         {
             ID = id;
             Name = name;
             Group = group;
             Description = description;
             DoneDate = doneDate;
+            Tags = tags;
         }
 
         public DropItem(DropItem dropItem)
@@ -29,6 +32,7 @@ namespace Trello.Client.Models
             Group = dropItem.Group;
             Description = dropItem.Description;
             DoneDate = dropItem.DoneDate;
+            Tags = dropItem.Tags;
         }
 
         public DropItem(ColumnDTO column, ItemDTO item)
@@ -38,6 +42,7 @@ namespace Trello.Client.Models
             Description = item.Description;
             Group = column.Name;
             DoneDate = item.DoneDate;
+            Tags = item.Tags;
         }
     }
 }

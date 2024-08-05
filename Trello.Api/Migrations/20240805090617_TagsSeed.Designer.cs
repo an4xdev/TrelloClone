@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Trello.Api.Database;
 
@@ -11,9 +12,11 @@ using Trello.Api.Database;
 namespace Trello.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240805090617_TagsSeed")]
+    partial class TagsSeed
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -216,11 +219,7 @@ namespace Trello.Api.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"));
 
-                    b.Property<string>("BackgroundColor")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("FontColor")
+                    b.Property<string>("Color")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -236,71 +235,61 @@ namespace Trello.Api.Migrations
                         new
                         {
                             ID = 1,
-                            BackgroundColor = "#FF5733",
-                            FontColor = "#FFFFFF",
+                            Color = "#FF5733",
                             Name = "High Priority"
                         },
                         new
                         {
                             ID = 2,
-                            BackgroundColor = "#FFC300",
-                            FontColor = "#000000",
+                            Color = "#FFC300",
                             Name = "Medium Priority"
                         },
                         new
                         {
                             ID = 3,
-                            BackgroundColor = "#DAF7A6",
-                            FontColor = "#000000",
+                            Color = "#DAF7A6",
                             Name = "Low Priority"
                         },
                         new
                         {
                             ID = 4,
-                            BackgroundColor = "#33FF57",
-                            FontColor = "#000000",
+                            Color = "#33FF57",
                             Name = "Completed"
                         },
                         new
                         {
                             ID = 5,
-                            BackgroundColor = "#33C1FF",
-                            FontColor = "#FFFFFF",
+                            Color = "#33C1FF",
                             Name = "In Progress"
                         },
                         new
                         {
                             ID = 6,
-                            BackgroundColor = "#8E44AD",
-                            FontColor = "#FFFFFF",
+                            Color = "#8E44AD",
                             Name = "On Hold"
                         },
                         new
                         {
                             ID = 7,
-                            BackgroundColor = "#FF33A6",
-                            FontColor = "#FFFFFF",
+                            Color = "#FF33A6",
                             Name = "Review"
                         },
                         new
                         {
                             ID = 8,
-                            BackgroundColor = "#2E4053",
-                            FontColor = "#FFFFFF",
+                            Color = "#2E4053",
                             Name = "New"
                         },
                         new
                         {
                             ID = 9,
-                            BackgroundColor = "#7DCEA0",
-                            FontColor = "#000000",
+                            Color = "#7DCEA0",
                             Name = "Scheduled"
                         },
                         new
                         {
                             ID = 10,
-                            BackgroundColor = "#F39C12",
-                            FontColor = "#000000",
+                            Color = "#F39C12",
                             Name = "Urgent"
                         });
                 });
@@ -381,13 +370,13 @@ namespace Trello.Api.Migrations
             modelBuilder.Entity("Trello.Api.Models.ItemTag", b =>
                 {
                     b.HasOne("Trello.Api.Models.Item", "Item")
-                        .WithMany("Tags")
+                        .WithMany("ItemTags")
                         .HasForeignKey("ItemID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Trello.Api.Models.Tag", "Tag")
-                        .WithMany("Items")
+                        .WithMany("ItemTags")
                         .HasForeignKey("TagID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -415,7 +404,7 @@ namespace Trello.Api.Migrations
 
             modelBuilder.Entity("Trello.Api.Models.Item", b =>
                 {
-                    b.Navigation("Tags");
+                    b.Navigation("ItemTags");
                 });
 
             modelBuilder.Entity("Trello.Api.Models.Project", b =>
@@ -425,7 +414,7 @@ namespace Trello.Api.Migrations
 
             modelBuilder.Entity("Trello.Api.Models.Tag", b =>
                 {
-                    b.Navigation("Items");
+                    b.Navigation("ItemTags");
                 });
 
             modelBuilder.Entity("Trello.Api.Models.Template", b =>

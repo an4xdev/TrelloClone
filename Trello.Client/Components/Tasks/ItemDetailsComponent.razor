@@ -5,7 +5,20 @@
     <CloseButton />
 </ModalHeader>
 <ModalBody>
-    <Text>Description: @Item.Description</Text>
+    <Div>
+        <Text><Text TextWeight="TextWeight.SemiBold">Description: </Text> @Item.Description</Text>
+    </Div>
+    <Div>
+        <Text TextWeight="TextWeight.SemiBold">Tags:</Text>
+    </Div>
+    <Div Flex="Flex.Wrap.Row">
+        @foreach(var tag in Item.Tags)
+        {
+            <div style="background:@tag.BackgroundColor;color:@tag.FontColor;display:flex;align-items:center;justify-content:center;margin:10px 10px 10px 0;padding:10px;box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+                <Text>@tag.Name</Text>
+            </div>
+        }
+    </Div>
 </ModalBody>
 
 @code {

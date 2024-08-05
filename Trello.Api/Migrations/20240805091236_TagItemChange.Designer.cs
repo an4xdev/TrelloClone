@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Trello.Api.Database;
 
@@ -11,9 +12,11 @@ using Trello.Api.Database;
 namespace Trello.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240805091236_TagItemChange")]
+    partial class TagItemChange
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -95,11 +98,16 @@ namespace Trello.Api.Migrations
                     b.Property<int>("ProjectID")
                         .HasColumnType("int");
 
+                    b.Property<int>("TagID")
+                        .HasColumnType("int");
+
                     b.HasKey("ID");
 
                     b.HasIndex("ColumnID");
 
                     b.HasIndex("ProjectID");
+
+                    b.HasIndex("TagID");
 
                     b.ToTable("Items");
 
@@ -110,7 +118,8 @@ namespace Trello.Api.Migrations
                             ColumnID = 1,
                             Description = "Get ready to your project",
                             Name = "Get ready",
-                            ProjectID = 1
+                            ProjectID = 1,
+                            TagID = 1
                         },
                         new
                         {
@@ -118,7 +127,8 @@ namespace Trello.Api.Migrations
                             ColumnID = 2,
                             Description = "You are planning your project",
                             Name = "Plan it",
-                            ProjectID = 1
+                            ProjectID = 1,
+                            TagID = 5
                         },
                         new
                         {
@@ -127,49 +137,7 @@ namespace Trello.Api.Migrations
                             Description = "You petted capybara",
                             DoneDate = new DateOnly(2024, 8, 5),
                             Name = "Pet capybara",
-                            ProjectID = 1
-                        });
-                });
-
-            modelBuilder.Entity("Trello.Api.Models.ItemTag", b =>
-                {
-                    b.Property<int>("ID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"));
-
-                    b.Property<int>("ItemID")
-                        .HasColumnType("int");
-
-                    b.Property<int>("TagID")
-                        .HasColumnType("int");
-
-                    b.HasKey("ID");
-
-                    b.HasIndex("ItemID");
-
-                    b.HasIndex("TagID");
-
-                    b.ToTable("ItemTags");
-
-                    b.HasData(
-                        new
-                        {
-                            ID = 1,
-                            ItemID = 1,
-                            TagID = 1
-                        },
-                        new
-                        {
-                            ID = 2,
-                            ItemID = 2,
-                            TagID = 5
-                        },
-                        new
-                        {
-                            ID = 3,
-                            ItemID = 3,
+                            ProjectID = 1,
                             TagID = 4
                         });
                 });
@@ -216,11 +184,7 @@ namespace Trello.Api.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"));
 
-                    b.Property<string>("BackgroundColor")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("FontColor")
+                    b.Property<string>("Color")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -236,71 +200,61 @@ namespace Trello.Api.Migrations
                         new
                         {
                             ID = 1,
-                            BackgroundColor = "#FF5733",
-                            FontColor = "#FFFFFF",
+                            Color = "#FF5733",
                             Name = "High Priority"
                         },
                         new
                         {
                             ID = 2,
-                            BackgroundColor = "#FFC300",
-                            FontColor = "#000000",
+                            Color = "#FFC300",
                             Name = "Medium Priority"
                         },
                         new
                         {
                             ID = 3,
-                            BackgroundColor = "#DAF7A6",
-                            FontColor = "#000000",
+                            Color = "#DAF7A6",
                             Name = "Low Priority"
                         },
                         new
                         {
                             ID = 4,
-                            BackgroundColor = "#33FF57",
-                            FontColor = "#000000",
+                            Color = "#33FF57",
                             Name = "Completed"
                         },
                         new
                         {
                             ID = 5,
-                            BackgroundColor = "#33C1FF",
-                            FontColor = "#FFFFFF",
+                            Color = "#33C1FF",
                             Name = "In Progress"
                         },
                         new
                         {
                             ID = 6,
-                            BackgroundColor = "#8E44AD",
-                            FontColor = "#FFFFFF",
+                            Color = "#8E44AD",
                             Name = "On Hold"
                         },
                         new
                         {
                             ID = 7,
-                            BackgroundColor = "#FF33A6",
-                            FontColor = "#FFFFFF",
+                            Color = "#FF33A6",
                             Name = "Review"
                         },
                         new
                         {
                             ID = 8,
-                            BackgroundColor = "#2E4053",
-                            FontColor = "#FFFFFF",
+                            Color = "#2E4053",
                             Name = "New"
                         },
                         new
                         {
                             ID = 9,
-                            BackgroundColor = "#7DCEA0",
-                            FontColor = "#000000",
+                            Color = "#7DCEA0",
                             Name = "Scheduled"
                         },
                         new
                         {
                             ID = 10,
-                            BackgroundColor = "#F39C12",
-                            FontColor = "#000000",
+                            Color = "#F39C12",
                             Name = "Urgent"
                         });
                 });
@@ -373,26 +327,15 @@ namespace Trello.Api.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Column");
-
-                    b.Navigation("Project");
-                });
-
-            modelBuilder.Entity("Trello.Api.Models.ItemTag", b =>
-                {
-                    b.HasOne("Trello.Api.Models.Item", "Item")
-                        .WithMany("Tags")
-                        .HasForeignKey("ItemID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("Trello.Api.Models.Tag", "Tag")
                         .WithMany("Items")
                         .HasForeignKey("TagID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Item");
+                    b.Navigation("Column");
+
+                    b.Navigation("Project");
 
                     b.Navigation("Tag");
                 });
@@ -411,11 +354,6 @@ namespace Trello.Api.Migrations
             modelBuilder.Entity("Trello.Api.Models.Column", b =>
                 {
                     b.Navigation("Items");
-                });
-
-            modelBuilder.Entity("Trello.Api.Models.Item", b =>
-                {
-                    b.Navigation("Tags");
                 });
 
             modelBuilder.Entity("Trello.Api.Models.Project", b =>
