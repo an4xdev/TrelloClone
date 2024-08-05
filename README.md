@@ -8,40 +8,47 @@ The main point of the application will be project planning, just like in the ori
 
 ## TODO List
 
-- User:
+- [ ] User:
   - [x] Adding if there is none in the application.
   - [ ] Editing
-- Project:
-  - API:
+- [x] Project:
+  - [x] API:
     - [x] Adding
     - [x] Editing
     - [x] Deleting  
-  - Client:
+  - [x] Client:
     - [x] Adding
     - [x] Editing
     - [x] Deleting  
-- Templates:
-  - API:
+- [x] Templates:
+  - [x] API:
     - [x] Adding
     - [x] Editing
     - [x] Deleting  
-  - Client:
+  - [x] Client:
     - [x] Adding
     - [x] Editing
     - [x] Deleting  
-- Tasks:
-  - API:
+- [ ] Tasks:
+  - [ ] API:
     - [x] Adding
     - [x] Editing
     - [x] Deleting
     - [ ] Changing category
-  - Client:
+  - [x] Client:
     - [x] Adding
     - [x] Editing
     - [x] Deleting
     - [x] Changing category
-  - [ ] Tags
-  - [ ] Importance ranking
+  - [ ] Tags:
+    - [ ] API:
+      - [ ] Adding
+      - [ ] Editing
+      - [ ] Deleting
+    - [ ] Client:
+      - [ ] Adding
+      - [ ] Editing 
+      - [ ] Deleting
 - [ ] Notifications
 - [ ] Summary charts
 - [ ] Docker
