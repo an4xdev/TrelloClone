@@ -51,7 +51,7 @@
 
         var httpClient = clientFactory.CreateClient("API");
 
-        var response = await httpClient.PostAsJsonAsync<ChangeItemRequest>("/api/item/edit", request);
+        var response = await httpClient.PutAsJsonAsync<ChangeItemRequest>("/api/item", request);
 
         if(response == null)
         {

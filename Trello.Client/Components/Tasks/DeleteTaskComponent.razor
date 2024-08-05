@@ -25,7 +25,7 @@
     private async Task Confirm()
     {
         var httpClient = clientFactory.CreateClient("API");
-        var response = await httpClient.DeleteFromJsonAsync<DefaultResponse>($"/api/item/delete/{Item.ID}");
+        var response = await httpClient.DeleteFromJsonAsync<DefaultResponse>($"/api/item/{Item.ID}");
 
         if (response == null)
         {

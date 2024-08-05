@@ -27,7 +27,7 @@
     {
         var httpClient = clientFactory.CreateClient("API");
 
-        var response = await httpClient.DeleteFromJsonAsync<DefaultResponse>($"/api/project/delete/{ProjectID}");
+        var response = await httpClient.DeleteFromJsonAsync<DefaultResponse>($"/api/project/{ProjectID}");
 
         if(response == null)
         {

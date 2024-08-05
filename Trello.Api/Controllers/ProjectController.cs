@@ -12,7 +12,7 @@ namespace Trello.Api.Controllers;
 [Route("api/[controller]")]
 public class ProjectController(AppDbContext context) : ControllerBase
 {
-    [HttpGet("all")]
+    [HttpGet]
     public async Task<List<OnlyProjectDTO>> GetMyProjects()
     {
         var response = new List<OnlyProjectDTO>();
@@ -82,7 +82,7 @@ public class ProjectController(AppDbContext context) : ControllerBase
         return await Task.FromResult(projectDTO);
     }
 
-    [HttpPost("add")]
+    [HttpPost]
     public async Task<AddProjectResponse> AddProject(AddProjectRequest request)
     {
         var response = new AddProjectResponse();
@@ -114,7 +114,7 @@ public class ProjectController(AppDbContext context) : ControllerBase
         return await Task.FromResult(response);
     }
 
-    [HttpPost("edit")]
+    [HttpPut]
     public async Task<DefaultResponse> EditProject(ChangeProjectRequest request)
     {
         DefaultResponse response = new();
@@ -150,7 +150,7 @@ public class ProjectController(AppDbContext context) : ControllerBase
         return await Task.FromResult(response);
     }
 
-    [HttpDelete("delete/{id:int}")]
+    [HttpDelete("{id:int}")]
     public async Task<DefaultResponse> DeleteProject(int id)
     {
 

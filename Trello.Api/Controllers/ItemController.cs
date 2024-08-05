@@ -12,7 +12,7 @@ namespace Trello.Api.Controllers;
 public class ItemController(AppDbContext context) : ControllerBase
 {
 
-    [HttpPost("add")]
+    [HttpPost]
     public async Task<AddItemResponse> AddItem(AddItemRequest request)
     {
         var response = new AddItemResponse();
@@ -39,6 +39,27 @@ public class ItemController(AppDbContext context) : ControllerBase
 
         context.Items.Add(item);
 
+
+        foreach (var tagID in request.TagIDs)
+        {
+            var tag = await context.Tags.Where(t => t.ID == tagID).FirstOrDefaultAsync();
+
+            if (tag == null)
+            {
+                response.IsSuccess = false;
+                response.Message = "Unknown tag assigned to task.";
+                return await Task.FromResult(response);
+            }
+
+            context.ItemTags.Add(new ItemTag
+            {
+                Item = item,
+                ItemID = item.ID,
+                Tag = tag,
+                TagID = tag.ID,
+            });
+        }
+
         int added = await context.SaveChangesAsync();
 
         if (added == 0)
@@ -55,7 +76,7 @@ public class ItemController(AppDbContext context) : ControllerBase
         return await Task.FromResult(response);
     }
 
-    [HttpPost("edit")]
+    [HttpPut]
     public async Task<DefaultResponse> ChangeItem(ChangeItemRequest request)
     {
         var response = new DefaultResponse();
@@ -89,7 +110,7 @@ public class ItemController(AppDbContext context) : ControllerBase
 
     }
 
-    [HttpDelete("delete/{id:int}")]
+    [HttpDelete("{id:int}")]
     public async Task<DefaultResponse> DeleteTask(int id)
     {
 

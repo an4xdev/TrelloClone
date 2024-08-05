@@ -51,7 +51,7 @@
 
         var httpClient = clientFactory.CreateClient("API");
 
-        var response = await httpClient.GetFromJsonAsync<List<OnlyProjectDTO>>("/api/project/all");
+        var response = await httpClient.GetFromJsonAsync<List<OnlyProjectDTO>>("/api/project");
 
         if(response != null)
         {

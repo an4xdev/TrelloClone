@@ -64,7 +64,7 @@
                 TemplateID = TemplateID
             };
 
-        var response = await httpClient.PostAsJsonAsync<AddProjectRequest>("/api/project/add", request);
+        var response = await httpClient.PostAsJsonAsync<AddProjectRequest>("/api/project", request);
 
         if (response == null)
         {

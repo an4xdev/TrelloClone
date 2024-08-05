@@ -63,6 +63,7 @@
     private List<DropItem> Items;
     private HashSet<ColumnModel> ColumnModels;
     private string ProjectName;
+    private List<TagDTO> Tags;
 
     [Parameter]
     public int? ProjectID { get; set; }
@@ -81,7 +82,6 @@
 
     protected override async Task OnInitializedAsync()
     {
-
         await ApplicationLoadingIndicatorService.Show();
 
         var httpClient = clientFactory.CreateClient("API");
@@ -164,25 +164,73 @@
         StateHasChanged();
     }
 
-    public Task ShowExtendedAddTask()
+    private async Task GetTags()
     {
-        return ModalService.Show<AddNewTaskExtendedComponent>("Add new task", x =>
+        if (Tags == null)
         {
-            x.Add(x => x.Columns, ColumnModels);
-            x.Add(x => x.ProjectID, foo);
-            x.Add(x => x.OnConfirm, AddedTask);
-        });
+            try
+            {
+                var httpClient = clientFactory.CreateClient("API");
+
+                var response = await httpClient.GetFromJsonAsync<List<TagDTO>>("/api/tag/");
+
+                if (response == null)
+                {
+                    await ToastService.Error("Failed to retrieve task tag data.");
+                    return;
+                }
+
+                Tags = response;
+            }
+            catch(HttpRequestException e)
+            {
+                await ToastService.Error("Failed to retrieve task tag data.");
+                throw e;
+            }
+
+        }
     }
 
-    public Task ShowAddTask(int column, string columnName)
+    public async Task ShowExtendedAddTask()
     {
-        return ModalService.Show<AddNewTaskComponent>("Add new task", x => 
-        { 
-            x.Add(x => x.OnConfirm, AddedTask); 
-            x.Add(x => x.ColumnID, column); 
-            x.Add(x => x.ProjectID, foo);
-            x.Add(x => x.ColumnName, columnName);
-        });
+        try
+        {
+            await GetTags();
+
+            await ModalService.Show<AddNewTaskExtendedComponent>("Add new task", x =>
+            {
+                x.Add(x => x.Columns, ColumnModels);
+                x.Add(x => x.ProjectID, foo);
+                x.Add(x => x.OnConfirm, AddedTask);
+                x.Add(x => x.Tags, Tags);
+            });
+        }
+        catch(HttpRequestException)
+        {
+
+        }
+    }
+
+    public async Task ShowAddTask(int column, string columnName)
+    {
+        try
+        {
+            await GetTags();
+
+            await ModalService.Show<AddNewTaskComponent>("Add new task", x =>
+            {
+                x.Add(x => x.OnConfirm, AddedTask);
+                x.Add(x => x.ColumnID, column);
+                x.Add(x => x.ProjectID, foo);
+                x.Add(x => x.ColumnName, columnName);
+                x.Add(x => x.Tags, Tags);
+            });
+        }
+        catch (HttpRequestException)
+        {
+
+        }
+    
     }
 
     private async Task AddedTask(AddItemResponse? response, DropItem? added)
