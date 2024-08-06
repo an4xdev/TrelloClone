@@ -9,6 +9,7 @@ The main point of the application will be project planning, just like in the ori
 ## Dependencies
 - [Blazorise](https://blazorise.com/) - [The Community Plan/Non-Business License](https://blazorise.com/files/licences/SLA-2023-07.pdf)
 - [Blazor.Notifications](https://github.com/Append-IT/Blazor.Notifications) - MIT
+- [ChartJs.Blazor](https://github.com/mariusmuntean/ChartJs.Blazor) - MIT
 
 ## TODO List
 
@@ -55,7 +56,11 @@ The main point of the application will be project planning, just like in the ori
       - [x] Editing 
       - [x] Deleting
 - [ ] Notifications
+  - [x] Example notification
+  - [ ] Summary notification 
 - [ ] Summary charts
+  - [x] Example Chart
+  - [ ] Charts
 - [ ] Docker
 
 ## Requirements for use
