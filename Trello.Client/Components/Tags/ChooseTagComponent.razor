@@ -11,7 +11,7 @@
         {
             <Div Flex="Flex.Row.AlignItems.Center" Margin="Margin.Is3.FromTop" Border="Border.Is3.Secondary.OnAll.Rounded" Padding="Padding.Is1.OnAll.Is3.FromStart">
                 <Div>
-                    <Check TValue="bool" onchange="@(() => CheckChanged(tag.ID))"/>
+                    <Check TValue="bool" onchange="@(() => CheckChanged(tag.ID))" Checked="Checked[tag.ID - 1]"/>
                 </Div>
                 <Div>
                     <div style="background:@tag.BackgroundColor;color:@tag.FontColor;padding:10px;min-width:100px;">

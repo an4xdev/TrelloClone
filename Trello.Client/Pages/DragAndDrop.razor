@@ -112,12 +112,22 @@
         return ModalService.Show<ItemDetailsComponent>(x => x.Add(x => x.Item, item), new ModalInstanceOptions(){UseModalStructure=false});
     }
 
-    public Task ShowEditModal(DropItem item)
+    public async Task ShowEditModal(DropItem item)
     {
-        return ModalService.Show<EditTaskComponent>(x => {
-            x.Add(x => x.Item, item);
-            x.Add(x => x.OnConfirm, ChangedTask);
-        }, new ModalInstanceOptions() { UseModalStructure = false });
+        try
+        {
+            await GetTags();
+            await ModalService.Show<EditTaskComponent>(x =>
+            {
+                x.Add(x => x.Item, item);
+                x.Add(x => x.OnConfirm, ChangedTask);
+                x.Add(x => x.Tags, Tags);
+            }, new ModalInstanceOptions() { UseModalStructure = false });
+        }
+        catch (HttpRequestException)
+        {
+
+        }
     }
 
     public Task ShowDeleteModal(DropItem item)

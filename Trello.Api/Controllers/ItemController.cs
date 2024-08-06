@@ -94,6 +94,47 @@ public class ItemController(AppDbContext context) : ControllerBase
         item.Name = request.Name;
         item.Description = request.Description;
 
+        foreach (var tagID in request.AddedTags)
+        {
+            var tag = context.Tags.Where(t => t.ID == tagID).FirstOrDefault();
+            if (tag == null)
+            {
+                response.IsSuccess = false;
+                response.Message = "Unknown tag to add to task.";
+                return await Task.FromResult(response);
+            }
+
+            context.ItemTags.Add(new ItemTag
+            {
+                Item = item,
+                ItemID = item.ID,
+                Tag = tag,
+                TagID = tagID,
+            });
+        }
+
+        foreach (var tagID in request.DeletedTags)
+        {
+            var tag = context.Tags.Where(t => t.ID == tagID).FirstOrDefault();
+            if (tag == null)
+            {
+                response.IsSuccess = false;
+                response.Message = "Unknown tag to delete from task.";
+                return await Task.FromResult(response);
+            }
+
+            var it = context.ItemTags.Where(it => it.ItemID == item.ID && it.TagID == tagID).FirstOrDefault();
+
+            if (it == null)
+            {
+                response.IsSuccess = false;
+                response.Message = "This task was not assigned such a tag.";
+                return await Task.FromResult(response);
+            }
+
+            context.ItemTags.Remove(it);
+        }
+
         int changed = await context.SaveChangesAsync();
 
         if (changed == 0)

@@ -22,32 +22,50 @@
             <TextEdit @bind-Text="Change.Description" />
         </FieldBody>
     </Field>
+    <Button Color="Color.Secondary" Clicked="ShowTags">Edit Tags</Button>
 </ModalBody>
 <ModalFooter>
     <Button Color="Color.Success " Clicked="Confirm">Confirm</Button>
-    <Button Color="Color.Secondary" Clicked="ModalService.Hide">Cancel</Button>
+    <Button Color="Color.Secondary" Clicked="Close">Cancel</Button>
 </ModalFooter>
 @code {
     [Inject] public IModalService ModalService { get; set; }
     [Parameter] public DropItem Item { get; set; }
     [Parameter] public Func<DefaultResponse?, DropItem?,Task> OnConfirm { get; set; }
+    [Parameter] public List<TagDTO> Tags { get; set; }
     private DropItem Change;
+    public List<bool> Checked = [];
+    ModalInstance ChooseTag;
 
-    protected override void OnParametersSet()
+    protected override void OnInitialized()
     {
-        base.OnParametersSet();
+        base.OnInitialized();   
         Change = new(Item);
     }
 
     private async Task Confirm()
     {
-
         ChangeItemRequest request = new()
             {
                 Id = Change.ID,
                 Name = Change.Name,
                 Description = Change.Description
             };
+
+        var tagsIDs = Change.Tags.Select(t => t.ID);
+
+        for (int i = 0; i < Checked.Count; i++)
+        {
+            if (Checked[i] && !tagsIDs.Contains(i + 1))
+            {
+                request.AddedTags.Add(i + 1);
+            }
+
+            if (!Checked[i] && tagsIDs.Contains(i + 1))
+            {
+                request.DeletedTags.Add(i + 1);
+            }
+        }
 
         var httpClient = clientFactory.CreateClient("API");
 
@@ -63,7 +81,50 @@
             await OnConfirm(content, Change);
         }
 
-        await ModalService.Hide();
+        await Close();
+    }
 
+    private async Task Close()
+    {
+        if (ChooseTag != null)
+        {
+            await ModalService.Remove(ChooseTag);
+        }
+
+        await ModalService.Hide();
+    }
+
+    private async Task ShowTags()
+    {
+        if (Checked.Count == 0)
+        {
+            Tags.ForEach(_ => Checked.Add(false));
+            Change.Tags.ForEach(t => Checked[t.ID - 1] = true);
+        }
+
+        if (ChooseTag == null)
+        {
+            ChooseTag = await ModalService.Show<ChooseTagComponent>(x =>
+            {
+                x.Add(x => x.Tags, Tags);
+                x.Add(x => x.CheckBoxChecked, CheckBoxChanged);
+                x.Add(x => x.Checked, Checked);
+            }, new ModalInstanceOptions()
+                {
+                    Stateful = true,
+                    UseModalStructure = false,
+                    ElementId = "TagsEditTask",
+                    RenderMode = ModalRenderMode.LazyLoad,
+                    Scrollable = true,
+                });
+        }
+
+        await ModalService.Show(ChooseTag);
+    }
+
+    public void CheckBoxChanged(int ID, bool value)
+    {
+        Checked[ID - 1] = value;
+        Console.WriteLine($"CheckBox for: {ID}, now is: {Checked[ID - 1]}");
     }
 }
