@@ -20,7 +20,7 @@ The main point of the application will be project planning, just like in the ori
     - [x] Adding
     - [x] Editing
     - [x] Deleting  
-- [x] Templates:
+- [ ] Templates:
   - [x] API:
     - [x] Adding
     - [x] Editing
@@ -28,7 +28,8 @@ The main point of the application will be project planning, just like in the ori
   - [x] Client:
     - [x] Adding
     - [x] Editing
-    - [x] Deleting  
+    - [x] Deleting
+  - [ ] Adding new or changing existed after adding column in project view.  
 - [ ] Tasks:
   - [ ] API:
     - [x] Adding
@@ -40,15 +41,15 @@ The main point of the application will be project planning, just like in the ori
     - [x] Editing
     - [x] Deleting
     - [x] Changing category
-  - [ ] Tags:
-    - [ ] API:
-      - [ ] Adding
-      - [ ] Editing
-      - [ ] Deleting
-    - [ ] Client:
-      - [ ] Adding
-      - [ ] Editing 
-      - [ ] Deleting
+  - [x] Tags:
+    - [x] API:
+      - [x] Adding
+      - [x] Editing
+      - [x] Deleting
+    - [x] Client:
+      - [x] Adding
+      - [x] Editing 
+      - [x] Deleting
 - [ ] Notifications
 - [ ] Summary charts
 - [ ] Docker
@@ -65,6 +66,5 @@ In its current state, the application is in development and it is recommended to
 
 ### Required operations
 
-- Profile pictures aren't uploaded so in this state you needs to remove user from database and after application started it should ask for creating new user. Another solution is to manually upload a file with the appropriate name, which is in the database to the Uploads folder in API project.
 - Database Migration via [EntityFramework](https://learn.microsoft.com/en-us/aspnet/entity-framework).
 - Run appliaction as `<Multiple Startup Projects>` in Visual Studio or API and Client projects in other IDEs. 
