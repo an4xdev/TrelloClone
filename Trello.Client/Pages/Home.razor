@@ -3,7 +3,7 @@
 @inject NavigationManager navigationManager
 @inject ILoadingIndicatorService ApplicationLoadingIndicatorService
 @inject IToastService ToastService
-
+@inject Append.Blazor.Notifications.INotificationService NotificationService
 <AddUserComponent />
 
 <PageTitle>Your Projects</PageTitle>
@@ -73,7 +73,17 @@
             await ToastService.Error("Project ERROR");
         }
 
+        bool IsSupportedByBrowser = await NotificationService.IsSupportedByBrowserAsync();
+
         await ApplicationLoadingIndicatorService.Hide();
+
+        if(IsSupportedByBrowser)
+        {
+            PermissionType permission = await NotificationService.RequestPermissionAsync();
+        }
+
+        await NotificationService.CreateAsync("Title", "Description", "images/github.png");
+
     }
 
     private void GoToProject(int ID)

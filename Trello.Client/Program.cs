@@ -1,3 +1,4 @@
+using Append.Blazor.Notifications;
 using Blazorise;
 using Blazorise.Bootstrap5;
 using Blazorise.Icons.FontAwesome;
@@ -25,6 +26,8 @@ builder.Services
 .AddFontAwesomeIcons();
 
 builder.Services.AddLoadingIndicator();
+
+builder.Services.AddNotifications();
 
 builder.Services.AddSingleton<EventAggregator>();
 

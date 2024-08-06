@@ -6,6 +6,10 @@ This is a project to improve skils with `Blazor` and `ASP.NET Core`.
 The UI was made using [Blazorise](https://blazorise.com/).
 The main point of the application will be project planning, just like in the original application.
 
+## Dependencies
+- [Blazorise](https://blazorise.com/) - [The Community Plan/Non-Business License](https://blazorise.com/files/licences/SLA-2023-07.pdf)
+- [Blazor.Notifications](https://github.com/Append-IT/Blazor.Notifications) - MIT
+
 ## TODO List
 
 - [ ] User:
