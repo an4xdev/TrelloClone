@@ -1,4 +1,5 @@
-﻿@inherits LayoutComponentBase
+﻿@inject Append.Blazor.Notifications.INotificationService NotificationService
+@inherits LayoutComponentBase
 <Layout>
     <LayoutHeader>
         <NavMenu />
@@ -12,3 +13,30 @@
     </LayoutContent>
 </Layout>
 
+@code{
+
+    // https://timmoth.com/posts/ZF2d7lLLn0aU8eWX31Sbnw - MIT
+
+    protected override async Task OnInitializedAsync()
+    {
+        bool IsSupportedByBrowser = await NotificationService.IsSupportedByBrowserAsync();
+
+        if (IsSupportedByBrowser)
+        {
+            PermissionType permission = await NotificationService.RequestPermissionAsync();
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            CancellationTokenSource _timerCancellationToken = new();
+            using var timer = new PeriodicTimer(TimeSpan.FromSeconds(5));
+            while (!_timerCancellationToken.IsCancellationRequested && await timer.WaitForNextTickAsync())
+            {
+                await NotificationService.CreateAsync("Title", "Description", "images/github.png");
+            }
+        }
+    }
+}
