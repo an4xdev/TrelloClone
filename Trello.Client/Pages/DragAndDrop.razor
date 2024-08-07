@@ -38,9 +38,7 @@
                 </Div>
             }
             <Div>
-                <Tooltip Text="Add Column">
-                    <Button Color="Color.Primary" Clicked="ShowAddColumnModal">Add Column</Button>
-                </Tooltip>
+                <Button Color="Color.Primary" Clicked="ShowAddColumnModal">Add Column</Button>
             </Div>
         </ChildContent>
         <ItemTemplate>
@@ -240,6 +238,11 @@
                 Name = response.Name,
                 MarkAsDone = response.MarkAsDone
             });
+
+        if(response.Status == ChangeColumnStatus.AddNewTemplate)
+        {
+            TemplateID = response.NewTemplateID;
+        }
 
         DropContainer.Refresh();
         StateHasChanged();

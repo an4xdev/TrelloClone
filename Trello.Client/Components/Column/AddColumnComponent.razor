@@ -1,0 +1,164 @@
+﻿@inject IToastService ToastService
+@inject IHttpClientFactory clientFactory
+<ModalHeader>
+    <ModalTitle>
+        <Text>Add new column</Text>
+    </ModalTitle>
+    <CloseButton/>
+</ModalHeader>
+<ModalBody>
+    <Field Horizontal>
+        <FieldLabel ColumnSize="ColumnSize.IsFull.Is3.OnDesktop">
+            Column name
+        </FieldLabel>
+        <FieldBody ColumnSize="ColumnSize.IsFull.OnTablet.Is9.OnDesktop">
+            <TextEdit @bind-Text="ColumnName" />
+        </FieldBody>
+    </Field>
+    <Check TValue="bool" @bind-Checked="MarkAsDone">Tasks in this column will be marked as done for statictics</Check>
+</ModalBody>
+<ModalFooter>
+    <Button Color="Color.Success" Clicked="ShowChooseModal">Confirm</Button>
+    <Button Color="Color.Secondary" Clicked="ModalService.Hide">Cancel</Button>
+</ModalFooter>
+
+<Modal @ref="modalRef" Closing="@OnModalClosing">
+    <ModalContent Centered>
+        <ModalHeader>
+            <ModalTitle>
+                Template behavior
+            </ModalTitle>
+        </ModalHeader>
+        <ModalBody>
+            <Div Margin="Margin.Is3.FromTop" Padding="Padding.Is2">
+                <Text>You want to add a column. What do you want to do with the template?</Text>
+            </Div>
+            <Div Margin="Margin.Is3.FromTop" Padding="Padding.Is2">
+                <RadioGroup TValue="ChangeColumnStatus" Name="ChangeTemplate" @bind-CheckedValue="Choice">
+                    <Tooltip Text="This will cause changes in all projects that use this template.">
+                        <Radio Value="ChangeColumnStatus.EditTemplate">Edit template</Radio>
+                    </Tooltip>
+                    <Radio Value="ChangeColumnStatus.AddNewTemplate">Create new template</Radio>
+                </RadioGroup>
+            </Div>
+            @if(Choice == ChangeColumnStatus.AddNewTemplate)
+            {
+                <Div Margin="Margin.Is3.FromTop" Padding="Padding.Is2">
+                    <Field Horizontal>
+                        <FieldLabel ColumnSize="ColumnSize.IsFull.Is3.OnDesktop">New template name</FieldLabel>
+                        <FieldBody ColumnSize="ColumnSize.IsFull.OnTablet.Is9.OnDesktop">
+                            <TextEdit @bind-Text="NewTemaplateName" />
+                        </FieldBody>
+                    </Field>
+                </Div>
+            }
+        </ModalBody>
+        <ModalFooter>
+            <Button Color="Color.Primary" Clicked="CloseModal">Confirm</Button>
+        </ModalFooter>
+    </ModalContent>
+</Modal>
+
+@code {
+    [Inject] public IModalService ModalService { get; set; }
+    [Parameter] public int TemplateID { get; set; }
+    [Parameter] public Func<AddColumnResponse?, Task> OnConfirm { get; set; }
+    public string ColumnName { get; set; } = string.Empty;
+    public bool MarkAsDone { get; set; }
+    public string NewTemaplateName { get; set; } = string.Empty;
+    private ChangeColumnStatus Choice = ChangeColumnStatus.None;
+
+    public async Task ShowChooseModal()
+    {
+        await modalRef.Show();
+    }
+
+    public async Task Confirm()
+    {
+        return;
+
+        if (Choice == ChangeColumnStatus.None)
+        {
+            await ToastService.Error("You needs to provide action to template.");
+            return;
+        }
+
+        if (ColumnName == string.Empty)
+        {
+            await ToastService.Error("Name of column is required.");
+            return;
+        }
+
+        var httpClient = clientFactory.CreateClient("API");
+
+        HttpResponseMessage response = null;
+
+        switch (Choice)
+        {
+            case ChangeColumnStatus.EditTemplate:
+                {
+                    AddColumnRequest request = new()
+                        {
+                            TemplateID = TemplateID,
+                            Name = ColumnName,
+                            MarkAsDone = MarkAsDone
+                        };
+                    response = await httpClient.PostAsJsonAsync<AddColumnRequest>("/api/template/column", request);
+                }
+                break;
+            case ChangeColumnStatus.AddNewTemplate:
+
+                if(NewTemaplateName == string.Empty)
+                {
+                    await ToastService.Error("Name of new template is required.");
+                    return;
+                }
+                {
+                    AddColumnAndTemplateRequest request = new()
+                        {
+                            ColumnName = ColumnName,
+                            MarkAsDone = MarkAsDone,
+                            TemplateID = TemplateID,
+                            TemplateName = NewTemaplateName,
+                            ProjectID = -1
+                        };
+                    response = await httpClient.PostAsJsonAsync<AddColumnAndTemplateRequest>("/api/project/column", request);
+                }
+                break;
+        }
+
+
+        if(response == null)
+        {
+            await OnConfirm(null);
+            await CloseModal();
+        }
+        else
+        {
+            var content = await response.Content.ReadFromJsonAsync<AddColumnResponse>();
+            await OnConfirm(content);
+            await CloseModal();
+        }
+
+    }
+
+    private bool cancelClose;
+    private Modal modalRef;
+
+    private async Task CloseModal()
+    {
+        cancelClose = false;
+
+        await modalRef.Hide();
+
+        await ModalService.Hide();
+    }
+
+    private Task OnModalClosing(ModalClosingEventArgs e)
+    {
+        e.Cancel = cancelClose
+            || e.CloseReason != CloseReason.UserClosing || Choice == ChangeColumnStatus.None;
+
+        return Task.CompletedTask;
+    }
+}

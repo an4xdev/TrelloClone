@@ -198,10 +198,17 @@ public class ProjectController(AppDbContext context) : ControllerBase
         return await Task.FromResult(response);
     }
 
+    [HttpPost("column")]
+    public async Task<AddColumnResponse> AddColumnAndTemplate(AddColumnAndTemplateRequest request)
+    {
+        AddColumnResponse response = new();
+
+        return await Task.FromResult(response);
+    }
+
     [HttpDelete("{id:int}")]
     public async Task<DefaultResponse> DeleteProject(int id)
     {
-
         var response = new DefaultResponse();
 
         var project = await context.Projects.Where(i => i.ID == id).FirstOrDefaultAsync();
