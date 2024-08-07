@@ -165,6 +165,11 @@
             }
         );
 
+        if(Items.Count == 0)
+        {
+            Items.Add(new DropItem(-1, string.Empty, string.Empty, string.Empty, null, []));
+        }
+
         ProjectName = response.Name;
 
         Items.ForEach(i => Console.WriteLine($"ID: {i.ID}, Name: {i.Name}, Group: {i.Group}"));
