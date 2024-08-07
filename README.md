@@ -35,12 +35,12 @@ The main point of the application will be project planning, just like in the ori
     - [x] Editing
     - [x] Deleting
   - [ ] Adding new or changing existed after adding column in project view.  
-- [ ] Tasks:
-  - [ ] API:
+- [x] Tasks:
+  - [x] API:
     - [x] Adding
     - [x] Editing
     - [x] Deleting
-    - [ ] Changing category
+    - [x] Changing category
   - [x] Client:
     - [x] Adding
     - [x] Editing
