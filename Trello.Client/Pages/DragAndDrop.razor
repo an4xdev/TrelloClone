@@ -3,6 +3,7 @@
 @inject IToastService ToastService
 @inject IHttpClientFactory clientFactory
 @inject ILoadingIndicatorService ApplicationLoadingIndicatorService
+@inject NavigationManager navigationManager
 @if (!(Items == null || Items.Count == 0 || ColumnModels == null || ColumnModels.Count == 0))
 {
     <Div Flex="Flex.AlignItems.Center.JustifyContent.Between">
@@ -70,14 +71,49 @@
 
     public int TemplateID;
 
-    private int foo;
-
     [Inject] public IModalService ModalService { get; set; }
 
-    private Task ItemDropped(DraggableDroppedEventArgs<DropItem> dropItem)
+    private async Task ItemDropped(DraggableDroppedEventArgs<DropItem> dropItem)
     {
+        var column = ColumnModels.Where(c => c.Name == dropItem.DropZoneName).FirstOrDefault();
+        if(column == null)
+        {
+            await ToastService.Error("Unkown column.");
+            return;
+        }
+        ChangeItemColumnRequest request = new()
+            {
+                ItemID = dropItem.Item.ID,
+                ColumnID = column.ID
+
+            };
+        var httpClient = clientFactory.CreateClient("API");
+        var response = await httpClient.PutAsJsonAsync<ChangeItemColumnRequest>("/api/item/column", request);
+
+        if(response == null)
+        {
+            await ToastService.Error("Error with procesing request.");
+            dropItem.Item.Group = dropItem.SourceDropZoneName;
+            return;
+        }
+
+        var content = await response.Content.ReadFromJsonAsync<DefaultResponse>();
+
+        if(content == null)
+        {
+            await ToastService.Error("Error with procesing request content.");
+            dropItem.Item.Group = dropItem.SourceDropZoneName;
+            return;
+        }
+
+        if(!content.IsSuccess)
+        {
+            await ToastService.Error(content.Message);
+            dropItem.Item.Group = dropItem.SourceDropZoneName;
+            return;
+        }
+
         dropItem.Item.Group = dropItem.DropZoneName;
-        return Task.CompletedTask;
     }
 
     protected override async Task OnInitializedAsync()
@@ -86,20 +122,50 @@
 
         var httpClient = clientFactory.CreateClient("API");
 
-        var response = await httpClient.GetFromJsonAsync<ProjectDTO>("/api/project/default");
+        ProjectDTO? response = null;
+
+        if (ProjectID.HasValue)
+        {
+            response = await httpClient.GetFromJsonAsync<ProjectDTO>($"/api/project/{ProjectID.Value}");
+        }
+        else
+        {
+            response = await httpClient.GetFromJsonAsync<ProjectDTO>("/api/project/default");
+        }
+
+        if (response == null)
+        {
+            await ToastService.Error("Failed to retrieve project data.");
+            await ApplicationLoadingIndicatorService.Hide();
+            navigationManager.NavigateTo("/");
+            return;
+        }
 
         ColumnModels = [];
 
         Items = [];
         TemplateID = response.Template.ID;
-        response.Template.Columns.ForEach(c => c.Items.ForEach(i =>
-        {
-            Items.Add(new DropItem(c, i));
-            ColumnModels.Add(new ColumnModel{ID = c.ID, Name = c.Name, MarkAsDone = c.MarkAsDone});
-        }));
+        response.Template.Columns.
+        ForEach(c =>
+            {
+                if (c.Items.Count == 0)
+                {
+                    ColumnModels.Add(new ColumnModel { ID = c.ID, Name = c.Name, MarkAsDone = c.MarkAsDone });
+                }
+                else
+                {
+                    c.Items.ForEach(i =>
+                    {
+                        Items.Add(new DropItem(c, i));
+                        ColumnModels.Add(new ColumnModel { ID = c.ID, Name = c.Name, MarkAsDone = c.MarkAsDone });
+                    });
+
+                }
+
+            }
+        );
 
         ProjectName = response.Name;
-        foo = response.ID;
 
         Items.ForEach(i => Console.WriteLine($"ID: {i.ID}, Name: {i.Name}, Group: {i.Group}"));
 
@@ -210,7 +276,7 @@
             await ModalService.Show<AddNewTaskExtendedComponent>("Add new task", x =>
             {
                 x.Add(x => x.Columns, ColumnModels);
-                x.Add(x => x.ProjectID, foo);
+                x.Add(x => x.ProjectID, ProjectID.HasValue? ProjectID.Value: 1);
                 x.Add(x => x.OnConfirm, AddedTask);
                 x.Add(x => x.Tags, Tags);
             });
@@ -231,7 +297,7 @@
             {
                 x.Add(x => x.OnConfirm, AddedTask);
                 x.Add(x => x.ColumnID, column);
-                x.Add(x => x.ProjectID, foo);
+                x.Add(x => x.ProjectID, ProjectID.HasValue ? ProjectID.Value : 1);
                 x.Add(x => x.ColumnName, columnName);
                 x.Add(x => x.Tags, Tags);
             });

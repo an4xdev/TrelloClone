@@ -151,6 +151,45 @@ public class ItemController(AppDbContext context) : ControllerBase
 
     }
 
+    [HttpPut("column")]
+    public async Task<DefaultResponse> ChangeColumn(ChangeItemColumnRequest request)
+    {
+        DefaultResponse response = new();
+
+        var item = await context.Items.Where(i => i.ID == request.ItemID).FirstOrDefaultAsync();
+
+        if (item == null)
+        {
+            response.IsSuccess = false;
+            response.Message = "Unknown task in request.";
+            return await Task.FromResult(response);
+        }
+
+        var column = await context.Columns.Where(c => c.ID == request.ColumnID).FirstOrDefaultAsync();
+
+        if (column == null)
+        {
+            response.IsSuccess = false;
+            response.Message = "Unknown column in request.";
+            return await Task.FromResult(response);
+        }
+
+        item.Column = column;
+        item.ColumnID = column.ID;
+
+        if (await context.SaveChangesAsync() == 0)
+        {
+            response.IsSuccess = false;
+            response.Message = "Error with procesing request.";
+            return await Task.FromResult(response);
+        }
+
+        response.IsSuccess = true;
+        response.Message = "Succesfully changed column of task.";
+
+        return await Task.FromResult(response);
+    }
+
     [HttpDelete("{id:int}")]
     public async Task<DefaultResponse> DeleteTask(int id)
     {

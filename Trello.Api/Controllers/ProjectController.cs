@@ -82,6 +82,54 @@ public class ProjectController(AppDbContext context) : ControllerBase
         return await Task.FromResult(projectDTO);
     }
 
+    [HttpGet("{id:int}")]
+    public async Task<ProjectDTO> GetProjectByID(int id)
+    {
+        var project = await context.Projects
+            .Include(p => p.Template)
+                .ThenInclude(t => t.Columns)
+            .Include(p => p.Items)
+                .ThenInclude(i => i.Tags)
+                    .ThenInclude(t => t.Tag)
+            .Where(p => p.ID == id)
+            .FirstOrDefaultAsync();
+
+        var projectDTO = new ProjectDTO
+        {
+            ID = project.ID,
+            Name = project.Name,
+            Template = new TemplateDTO
+            {
+                ID = project.Template.ID,
+                Name = project.Template.Name,
+                Columns = project.Template.Columns.Select(c => new ColumnDTO
+                {
+                    ID = c.ID,
+                    Name = c.Name,
+                    MarkAsDone = c.MarkAsDone,
+                    Items = c.Items.Select(i => new ItemDTO
+                    {
+                        ID = i.ID,
+                        Name = i.Name,
+                        Description = i.Description,
+                        DoneDate = i.DoneDate,
+                        Tags = i.Tags.Select(t => new TagDTO { ID = t.Tag.ID, BackgroundColor = t.Tag.BackgroundColor, Name = t.Tag.Name, FontColor = t.Tag.FontColor }).ToList(),
+                    }).ToList()
+                }).ToList()
+            },
+            Items = project.Items.Select(i => new ItemDTO
+            {
+                ID = i.ID,
+                Name = i.Name,
+                Description = i.Description,
+                DoneDate = i.DoneDate,
+                Tags = i.Tags.Select(t => new TagDTO { ID = t.Tag.ID, BackgroundColor = t.Tag.BackgroundColor, Name = t.Tag.Name, FontColor = t.Tag.FontColor }).ToList(),
+            }).ToList()
+        };
+
+        return await Task.FromResult(projectDTO);
+    }
+
     [HttpPost]
     public async Task<AddProjectResponse> AddProject(AddProjectRequest request)
     {
