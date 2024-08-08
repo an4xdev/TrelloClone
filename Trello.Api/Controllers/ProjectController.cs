@@ -83,7 +83,7 @@ public class ProjectController(AppDbContext context) : ControllerBase
     }
 
     [HttpGet("{id:int}")]
-    public async Task<ProjectDTO> GetProjectByID(int id)
+    public async Task<ProjectDTO?> GetProjectByID(int id)
     {
         var project = await context.Projects
             .Include(p => p.Template)
@@ -93,6 +93,11 @@ public class ProjectController(AppDbContext context) : ControllerBase
                     .ThenInclude(t => t.Tag)
             .Where(p => p.ID == id)
             .FirstOrDefaultAsync();
+
+        if (project == null)
+        {
+            return null;
+        }
 
         var projectDTO = new ProjectDTO
         {
@@ -145,20 +150,16 @@ public class ProjectController(AppDbContext context) : ControllerBase
 
         context.Projects.Add(project);
 
-        int added = await context.SaveChangesAsync();
-
-        if (added > 0)
-        {
-            response.AddedID = project.ID;
-            response.IsSuccess = true;
-            response.Message = "Successfully added new project";
-        }
-        else
+        if (await context.SaveChangesAsync() == 0)
         {
             response.IsSuccess = false;
             response.Message = "Something went wrong with creating new project";
+            return await Task.FromResult(response);
         }
 
+        response.AddedID = project.ID;
+        response.IsSuccess = true;
+        response.Message = "Successfully added new project";
         return await Task.FromResult(response);
     }
 
@@ -181,19 +182,15 @@ public class ProjectController(AppDbContext context) : ControllerBase
         project.TemplateID = request.TemplateID;
         project.Template = await context.Templates.Where(t => t.ID == request.TemplateID).FirstAsync();
 
-        int changed = await context.SaveChangesAsync();
-
-        if (changed > 0)
-        {
-            response.IsSuccess = true;
-            response.Message = "The project was successfully edited.";
-        }
-        else
+        if (await context.SaveChangesAsync() > 0)
         {
             response.IsSuccess = false;
             response.Message = "An error occurred during the project edit.";
+            return await Task.FromResult(response);
         }
 
+        response.IsSuccess = true;
+        response.Message = "The project was successfully edited.";
 
         return await Task.FromResult(response);
     }
@@ -222,9 +219,7 @@ public class ProjectController(AppDbContext context) : ControllerBase
 
         context.Projects.Remove(project);
 
-        int deleted = await context.SaveChangesAsync();
-
-        if (deleted == 0)
+        if (await context.SaveChangesAsync() == 0)
         {
             response.IsSuccess = false;
             response.Message = "An error occurred during the project delete.";

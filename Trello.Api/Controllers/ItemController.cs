@@ -60,9 +60,7 @@ public class ItemController(AppDbContext context) : ControllerBase
             });
         }
 
-        int added = await context.SaveChangesAsync();
-
-        if (added == 0)
+        if (await context.SaveChangesAsync() == 0)
         {
             response.IsSuccess = false;
             response.Message = "An error occurred during adding task.";
@@ -135,9 +133,7 @@ public class ItemController(AppDbContext context) : ControllerBase
             context.ItemTags.Remove(it);
         }
 
-        int changed = await context.SaveChangesAsync();
-
-        if (changed == 0)
+        if (await context.SaveChangesAsync() == 0)
         {
             response.IsSuccess = false;
             response.Message = "An error occurred during the task change.";
@@ -208,9 +204,7 @@ public class ItemController(AppDbContext context) : ControllerBase
 
         context.Items.Remove(item);
 
-        int deleted = await context.SaveChangesAsync();
-
-        if (deleted == 0)
+        if (await context.SaveChangesAsync() == 0)
         {
             response.IsSuccess = false;
             response.Message = "An error occurred during the task delete.";

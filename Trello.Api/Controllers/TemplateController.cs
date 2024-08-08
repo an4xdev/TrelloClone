@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Trello.Api.Database;
 using Trello.Api.Models;
+using Trello.Client.Models;
 using Trello.Shared.DTOs;
 using Trello.Shared.Requests;
 using Trello.Shared.Responses;
@@ -38,7 +39,7 @@ public class TemplateController(AppDbContext context) : ControllerBase
         return await Task.FromResult(response);
     }
     [HttpGet("all")]
-    public async Task<List<OnlyTemplateDTO>> GetAllTemplates()
+    public async Task<List<OnlyTemplateDTO>> GetOnlyTemplates()
     {
         var response = new List<OnlyTemplateDTO>();
 
@@ -53,9 +54,14 @@ public class TemplateController(AppDbContext context) : ControllerBase
     }
 
     [HttpGet("{id:int}")]
-    public async Task<TemplateDTO> GetTemaplateByID(int id)
+    public async Task<TemplateDTO?> GetTemaplateByID(int id)
     {
         var template = await context.Templates.Where(t => t.ID == id).FirstOrDefaultAsync();
+
+        if (template == null)
+        {
+            return null;
+        }
 
         var response = new TemplateDTO()
         {
@@ -141,13 +147,20 @@ public class TemplateController(AppDbContext context) : ControllerBase
 
         context.Columns.Add(column);
 
-        await context.SaveChangesAsync();
+        if (await context.SaveChangesAsync() == 0)
+        {
+            response.IsSuccess = false;
+            response.Message = "An error occurred during the adding column to template.";
+            response.AddedID = -1;
+            return await Task.FromResult(response);
+        }
 
         response.IsSuccess = true;
-        response.Message = "Succesfully added new column";
+        response.Message = "Succesfully added new column.";
         response.AddedID = column.ID;
         response.MarkAsDone = request.MarkAsDone;
         response.Name = request.Name;
+        response.Status = ChangeColumnStatus.EditTemplate;
 
         return await Task.FromResult(response);
     }
@@ -205,7 +218,12 @@ public class TemplateController(AppDbContext context) : ControllerBase
             col.Name = c.Name;
         }
 
-        await context.SaveChangesAsync();
+        if (await context.SaveChangesAsync() == 0)
+        {
+            response.IsSuccess = false;
+            response.Message = "An error occurred during the template edit.";
+            return await Task.FromResult(response);
+        }
 
         response.IsSuccess = true;
         response.Message = $"Succesfully edited template {template.Name}.";
@@ -228,6 +246,14 @@ public class TemplateController(AppDbContext context) : ControllerBase
         }
 
         context.Templates.Remove(template);
+
+        if (await context.SaveChangesAsync() == 0)
+        {
+            response.IsSuccess = false;
+            response.Message = "An error occurred during the deleting of template.";
+            return await Task.FromResult(response);
+        }
+
         response.IsSuccess = true;
         response.Message = $"Successfully deleted template {template.Name}";
         return await Task.FromResult(response);
