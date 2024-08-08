@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Trello.Api.Database;
 using Trello.Api.Models;
+using Trello.Client.Models;
 using Trello.Shared.DTOs;
 using Trello.Shared.Requests;
 using Trello.Shared.Responses;
@@ -199,6 +200,102 @@ public class ProjectController(AppDbContext context) : ControllerBase
     public async Task<AddColumnResponse> AddColumnAndTemplate(AddColumnAndTemplateRequest request)
     {
         AddColumnResponse response = new();
+
+        var project = await context.Projects.Where(p => p.ID == request.ProjectID).FirstOrDefaultAsync();
+
+        if (project == null)
+        {
+            response.IsSuccess = false;
+            response.Message = "Unknown project in adding new template with new column";
+            return await Task.FromResult(response);
+        }
+
+        var template = await context.Templates.Where(t => t.ID == request.TemplateID).FirstOrDefaultAsync();
+
+        if (template == null)
+        {
+            response.IsSuccess = false;
+            response.Message = "Unknown template in adding new template with new column";
+            return await Task.FromResult(response);
+        }
+
+        using var transaction = await context.Database.BeginTransactionAsync();
+
+        Template newTemplate = new()
+        {
+            Name = request.TemplateName,
+        };
+
+        context.Templates.Add(newTemplate);
+
+        if (await context.SaveChangesAsync() == 0)
+        {
+            response.IsSuccess = false;
+            response.Message = "An error occurred during adding new template.";
+            await transaction.RollbackAsync();
+            return await Task.FromResult(response);
+        }
+
+        foreach (var c in template.Columns)
+        {
+            var newColTemp = new Column { Name = c.Name, MarkAsDone = c.MarkAsDone, Template = newTemplate, TemplateID = newTemplate.ID };
+
+            context.Columns.Add(newColTemp);
+
+            if (await context.SaveChangesAsync() == 0)
+            {
+                response.IsSuccess = false;
+                response.Message = "An error occurred during copying column to new template.";
+                await transaction.RollbackAsync();
+                return await Task.FromResult(response);
+            }
+
+            c.Items.ToList().ForEach(i =>
+            {
+                context.Items.Add(new Item { Name = i.Name, Description = i.Description, DoneDate = i.DoneDate, ProjectID = i.ProjectID, Project = i.Project, Tags = i.Tags, Column = newColTemp, ColumnID = newColTemp.ID });
+            });
+
+            if (await context.SaveChangesAsync() == 0)
+            {
+                response.IsSuccess = false;
+                response.Message = "An error occurred during copying items of column to new template.";
+                await transaction.RollbackAsync();
+                return await Task.FromResult(response);
+            }
+        }
+
+        var newCol = new Column { Name = request.ColumnName, MarkAsDone = request.MarkAsDone, Template = newTemplate, TemplateID = newTemplate.ID };
+
+        context.Columns.Add(newCol);
+
+        if (await context.SaveChangesAsync() == 0)
+        {
+            response.IsSuccess = false;
+            response.Message = "An error occurred during adding new column to new template.";
+            await transaction.RollbackAsync();
+            return await Task.FromResult(response);
+        }
+
+        project.Template = newTemplate;
+        project.TemplateID = newTemplate.ID;
+
+        if (await context.SaveChangesAsync() == 0)
+        {
+            response.IsSuccess = false;
+            response.Message = "An error occurred during changing template to project.";
+            await transaction.RollbackAsync();
+            return await Task.FromResult(response);
+        }
+
+        await transaction.CommitAsync();
+
+        response.AddedID = newCol.ID;
+        response.IsSuccess = true;
+        response.MarkAsDone = newCol.MarkAsDone;
+        response.Message = "Succesfully created new template and column with swap to project.";
+        response.Name = newCol.Name;
+        response.NewTemplateID = newTemplate.ID;
+        response.Status = ChangeColumnStatus.AddNewTemplate;
 
         return await Task.FromResult(response);
     }
