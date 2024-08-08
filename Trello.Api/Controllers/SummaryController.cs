@@ -22,7 +22,39 @@ public class SummaryController(AppDbContext context) : ControllerBase
     [HttpGet("date")]
     public async Task<List<SummaryByDateResponse>> SummaryByDates()
     {
-        return await Task.FromResult(context.Items.Where(i => i.DoneDate != null).GroupBy(i => i.DoneDate).Select(i => new SummaryByDateResponse { Date = i.Key, Count = i.Count() }).ToList());
+        List<SummaryByDateResponse> respone = [];
+
+        var first = await context.Items.Where(i => i.DoneDate != null).OrderBy(i => i.DoneDate).FirstOrDefaultAsync();
+
+        DateOnly today = DateOnly.FromDateTime(DateTime.Now);
+
+        // no task has been completed
+        // fill with dates minus 30 days
+        if (first == null)
+        {
+            for (DateOnly date = today.AddDays(-30); date < today; date = date.AddDays(1))
+            {
+                respone.Add(new SummaryByDateResponse
+                {
+                    Date = date,
+                    Count = 0
+                });
+            }
+        }
+        else
+        {
+            for (DateOnly date = (DateOnly)first.DoneDate; date < today; date = date.AddDays(1))
+            {
+                var count = context.Items.Where(i => i.DoneDate != null && i.DoneDate == date).Count();
+                respone.Add(new SummaryByDateResponse
+                {
+                    Date = date,
+                    Count = count,
+                });
+            }
+        }
+
+        return await Task.FromResult(respone);
     }
 
     [HttpGet("templates")]
