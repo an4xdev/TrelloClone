@@ -1,4 +1,5 @@
 ﻿@page "/summary"
+@using ChartJs.Blazor.BarChart
 @using ChartJs.Blazor.Common
 @using ChartJs.Blazor.Common.Axes
 @using ChartJs.Blazor.Common.Enums
@@ -7,30 +8,101 @@
 @using ChartJs.Blazor.PieChart
 @using ChartJs.Blazor.Util
 @inject IHttpClientFactory clientFactory
+@inject ILoadingIndicatorService ApplicationLoadingIndicatorService
 <AddUserComponent />
 
 <PageTitle>Summary of your projects</PageTitle>
 
-@if (render)
+@if(summaryGeneral != null)
 {
-    <Chart Config="TagChartConfig"></Chart>
-    <Chart Config="DateChartConfig"></Chart>
+    <Card>
+        <CardTitle>
+            General informations
+        </CardTitle>
+        <CardBody>
+            <Div>
+                <Text><Text TextWeight="TextWeight.SemiBold">Tasks: </Text>@summaryGeneral.TotalTasks</Text>
+            </Div>
+            <Div>
+                <Text><Text TextWeight="TextWeight.SemiBold">Projects: </Text>@summaryGeneral.TotalProjects</Text>
+            </Div>
+            @if(summaryGeneral.LastDoneTask != null)
+            {
+                <Card>
+                    <CardTitle>
+                        Last done task
+                    </CardTitle>
+                    <CardBody>
+                        <Div>
+                            <Text><Text TextWeight="TextWeight.SemiBold">Task Name: </Text>@summaryGeneral.LastDoneTask.TaskName</Text>
+                        </Div>
+                        <Div>
+                            <Text><Text TextWeight="TextWeight.SemiBold">Done at: </Text>@($"{summaryGeneral.LastDoneTask.Date.Value.Day:00}.{summaryGeneral.LastDoneTask.Date.Value.Month:00}.{summaryGeneral.LastDoneTask.Date.Value.Year:00}")</Text>
+                        </Div>
+                        <Div>
+                            <Text><Text TextWeight="TextWeight.SemiBold">Project Name: </Text>@summaryGeneral.LastDoneTask.ProjectName</Text>
+                        </Div>
+                        <Div>
+                            <Button Type="ButtonType.Link" To="@($"/drag/{summaryGeneral.LastDoneTask.ProjectID}")" Color="Color.Primary">Go to project</Button>
+                        </Div>
+                    </CardBody>
+                </Card>
+            }
+        </CardBody>
+    </Card>
 }
-
+<Tabs SelectedTab="@selectedTab">
+    <Items>
+        <Tab Name="tags">Summary of tags</Tab>
+        <Tab Name="tasks">Summary of done tasks</Tab>
+        <Tab Name="templates">Summary of used templates</Tab>
+    </Items>
+    <Content>
+        <TabPanel Name="tags">
+            @if (TagChartConfig != null && TagChartConfig.Data.Datasets.Count != 0)
+            {
+                <Chart Config="TagChartConfig"></Chart>
+            }
+        </TabPanel>
+        <TabPanel Name="tasks">
+            @if (DateChartConfig != null && DateChartConfig.Data.Datasets.Count != 0)
+            {
+                <Chart Config="DateChartConfig"></Chart>
+            }
+        </TabPanel>
+        <TabPanel Name="templates">
+            @if (TemplateChartConfig != null && TemplateChartConfig.Data.Datasets.Count != 0)
+            {
+                <Chart Config="TemplateChartConfig"></Chart>
+            }
+        </TabPanel>
+    </Content>
+</Tabs>
 
 @code {
     private PieConfig TagChartConfig;
     private LineConfig DateChartConfig;
+    private BarConfig TemplateChartConfig;
     HttpClient httpClient;
-
-    bool render = false;
+    private SummaryGeneralResponse summaryGeneral;
+    string selectedTab = "tags";
 
     protected override async Task OnInitializedAsync()
     {
+        await ApplicationLoadingIndicatorService.Show();
+
         httpClient = clientFactory.CreateClient("API");
+        await LoadSummaryGeneral();
         await LoadSummaryByTags();
         await LoadSummaryByDate();
-        render = true;
+        await LoadSummaryByTemplate();
+
+        await ApplicationLoadingIndicatorService.Hide();
+    }
+
+    private async Task LoadSummaryGeneral()
+    {
+        summaryGeneral = await httpClient.GetFromJsonAsync<SummaryGeneralResponse>("/api/summary");
     }
 
     private async Task LoadSummaryByDate()
@@ -43,30 +115,35 @@
                 Title = new OptionsTitle
                 {
                     Display = true,
-                    Text = "ChartJs.Blazor Line Chart"
+                    Text = "Task done of each day",
+                    FontSize = 25
+                },
+                Legend = new Legend
+                {
+                    Display = false
                 },
                 Scales = new Scales
                 {
                     XAxes = new List<CartesianAxis>
-                {
-                    new CategoryAxis
                     {
-                        ScaleLabel = new ScaleLabel
+                        new CategoryAxis
                         {
-                            LabelString = "Month"
+                            ScaleLabel = new ScaleLabel
+                            {
+                                LabelString = "Day"
+                            }
                         }
-                    }
-                },
+                    },
                     YAxes = new List<CartesianAxis>
-                {
-                    new LinearCartesianAxis
                     {
-                        ScaleLabel = new ScaleLabel
+                        new LinearCartesianAxis
                         {
-                            LabelString = "Value"
+                            ScaleLabel = new ScaleLabel
+                            {
+                                LabelString = "Value"
+                            }
                         }
                     }
-                }
                 }
             }
         };
@@ -80,17 +157,14 @@
 
         IDataset<int> dataset = new LineDataset<int>(response.Select(d => d.Count))
         {
-            Label = "FOOOOO",
             BackgroundColor = ColorUtil.RandomColorString(),
             BorderColor = ColorUtil.RandomColorString(),
-            Fill = FillingMode.Origin
+            Fill = FillingMode.Start
         };
 
-        response.ForEach(d => DateChartConfig.Data.Labels.Add(d.Date.ToString()));
+        response.ForEach(d => DateChartConfig.Data.Labels.Add($"{d.Date.Value.Day:00}.{d.Date.Value.Month:00}.{d.Date.Value.Year}"));
 
         DateChartConfig.Data.Datasets.Add(dataset);
-
-        // SummaryByDayConfig.Data.Labels.Add();
     }
 
     private async Task LoadSummaryByTags()
@@ -103,7 +177,8 @@
                     Title = new OptionsTitle
                     {
                         Display = true,
-                        Text = "Tasks by tag"
+                        Text = "Tasks by tag",
+                        FontSize = 25
                     }
                 }
             };
@@ -125,5 +200,42 @@
 
         TagChartConfig.Data.Datasets.Add(dataset);
 
+    }
+
+    private async Task LoadSummaryByTemplate()
+    {
+        TemplateChartConfig = new BarConfig
+        {
+            Options = new BarOptions
+            {
+                Responsive = true,
+                Legend = new Legend
+                {
+                    Display = false
+                },
+                Title = new OptionsTitle
+                {
+                    Display = true,
+                    Text = "Count of projects by template",
+                    FontSize = 25
+                }
+            }
+        };
+
+        var response = await httpClient.GetFromJsonAsync<List<SummaryByTemplateResponse>>("/api/summary/templates");
+
+        Console.WriteLine("Templates:");
+
+        response.ForEach(t => Console.WriteLine($"    Name: {t.TemplateName}, Count: {t.Count}"));
+
+        response.ForEach(t => TemplateChartConfig.Data.Labels.Add(t.TemplateName));
+
+        IDataset<int> dataset = new BarDataset<int>(response.Select(d => d.Count))
+        {
+            BackgroundColor = ColorUtil.RandomColorString(),
+            BorderColor = ColorUtil.RandomColorString()
+        };
+
+        TemplateChartConfig.Data.Datasets.Add(dataset);
     }
 }
