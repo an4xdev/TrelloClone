@@ -16,6 +16,7 @@ The main point of the application will be project planning, just like in the ori
 - [ ] User:
   - [x] Adding if there is none in the application.
   - [ ] Editing
+  - [ ] The user can decide whether and when to receive notifications.
 - [x] Project:
   - [x] API:
     - [x] Adding
@@ -25,7 +26,7 @@ The main point of the application will be project planning, just like in the ori
     - [x] Adding
     - [x] Editing
     - [x] Deleting  
-- [ ] Templates:
+- [x] Templates:
   - [x] API:
     - [x] Adding
     - [x] Editing
@@ -34,7 +35,7 @@ The main point of the application will be project planning, just like in the ori
     - [x] Adding
     - [x] Editing
     - [x] Deleting
-  - [ ] Adding new or changing existed after adding column in project view.  
+  - [x] Adding new or changing existed after adding column in project view.  
 - [x] Tasks:
   - [x] API:
     - [x] Adding
@@ -55,13 +56,19 @@ The main point of the application will be project planning, just like in the ori
       - [x] Adding
       - [x] Editing 
       - [x] Deleting
-- [ ] Notifications
+- [x] Notifications
   - [x] Example notification
-  - [ ] Summary notification 
-- [ ] Summary charts
+  - [x] Summary notification 
+- [x] Summary charts
   - [x] Example Chart
-  - [ ] Charts
-- [ ] Docker
+  - [x] Charts
+
+## TODO ? list
+
+- [ ] Docker?
+- [ ] Moving to SQLite for better API design portability?
+- [ ] PWA?
+- [ ] Add a record of days when they do not want to receive notifications?
 
 ## Requirements for use
 
