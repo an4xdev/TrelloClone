@@ -111,6 +111,8 @@
             return;
         }
 
+        dropItem.Item.DoneDate = column.MarkAsDone ? DateOnly.FromDateTime(DateTime.Now) : null;
+
         dropItem.Item.Group = dropItem.DropZoneName;
     }
 
@@ -178,7 +180,7 @@
 
     public Task ShowInfoModal(DropItem item)
     {
-        return ModalService.Show<ItemDetailsComponent>(x => x.Add(x => x.Item, item), new ModalInstanceOptions(){UseModalStructure=false});
+        return ModalService.Show<InfoTaskComponent>(x => x.Add(x => x.Item, item), new ModalInstanceOptions() { UseModalStructure = false });
     }
 
     public async Task ShowEditModal(DropItem item)

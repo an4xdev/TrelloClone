@@ -11,6 +11,12 @@
     <Div>
         <Text TextWeight="TextWeight.SemiBold">Tags:</Text>
     </Div>
+    @if(Item.DoneDate != null)
+    {
+        <Div>
+            <Text><Text TextWeight="TextWeight.SemiBold">Task done on: </Text> @Item.DoneDate</Text>
+        </Div>
+    }
     <Div Flex="Flex.Wrap.Row">
         @foreach(var tag in Item.Tags)
         {

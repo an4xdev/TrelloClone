@@ -176,6 +176,7 @@ public class ItemController(AppDbContext context) : ControllerBase
 
         item.Column = column;
         item.ColumnID = column.ID;
+        item.DoneDate = column.MarkAsDone ? DateOnly.FromDateTime(DateTime.Now) : null;
 
         if (await context.SaveChangesAsync() == 0)
         {
