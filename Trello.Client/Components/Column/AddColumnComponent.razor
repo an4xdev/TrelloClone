@@ -75,8 +75,6 @@
 
     public async Task Confirm()
     {
-        return;
-
         if (Choice == ChangeColumnStatus.None)
         {
             await ToastService.Error("You needs to provide action to template.");

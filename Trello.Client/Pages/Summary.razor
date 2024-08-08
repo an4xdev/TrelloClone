@@ -1,18 +1,101 @@
 ﻿@page "/summary"
 @using ChartJs.Blazor.Common
+@using ChartJs.Blazor.Common.Axes
+@using ChartJs.Blazor.Common.Enums
+@using ChartJs.Blazor.Common.Time
+@using ChartJs.Blazor.LineChart
 @using ChartJs.Blazor.PieChart
 @using ChartJs.Blazor.Util
+@inject IHttpClientFactory clientFactory
 <AddUserComponent />
 
 <PageTitle>Summary of your projects</PageTitle>
 
-<Chart Config="_config"></Chart>
-@code {
-    private PieConfig _config;
+@if (render)
+{
+    <Chart Config="TagChartConfig"></Chart>
+    <Chart Config="DateChartConfig"></Chart>
+}
 
-    protected override void OnInitialized()
+
+@code {
+    private PieConfig TagChartConfig;
+    private LineConfig DateChartConfig;
+    HttpClient httpClient;
+
+    bool render = false;
+
+    protected override async Task OnInitializedAsync()
     {
-        _config = new PieConfig
+        httpClient = clientFactory.CreateClient("API");
+        await LoadSummaryByTags();
+        await LoadSummaryByDate();
+        render = true;
+    }
+
+    private async Task LoadSummaryByDate()
+    {
+        DateChartConfig = new LineConfig
+        {
+            Options = new LineOptions
+            {
+                Responsive = true,
+                Title = new OptionsTitle
+                {
+                    Display = true,
+                    Text = "ChartJs.Blazor Line Chart"
+                },
+                Scales = new Scales
+                {
+                    XAxes = new List<CartesianAxis>
+                {
+                    new CategoryAxis
+                    {
+                        ScaleLabel = new ScaleLabel
+                        {
+                            LabelString = "Month"
+                        }
+                    }
+                },
+                    YAxes = new List<CartesianAxis>
+                {
+                    new LinearCartesianAxis
+                    {
+                        ScaleLabel = new ScaleLabel
+                        {
+                            LabelString = "Value"
+                        }
+                    }
+                }
+                }
+            }
+        };
+
+        var response = await httpClient.GetFromJsonAsync<List<SummaryByDateResponse>>("/api/summary/date");
+
+        Console.WriteLine("DATES:");
+
+        response.ForEach(d => Console.WriteLine($"    Date: {d.Date.ToString()}, Count: {d.Count}"));
+
+
+        IDataset<int> dataset = new LineDataset<int>(response.Select(d => d.Count))
+        {
+            Label = "FOOOOO",
+            BackgroundColor = ColorUtil.RandomColorString(),
+            BorderColor = ColorUtil.RandomColorString(),
+            Fill = FillingMode.Origin
+        };
+
+        response.ForEach(d => DateChartConfig.Data.Labels.Add(d.Date.ToString()));
+
+        DateChartConfig.Data.Datasets.Add(dataset);
+
+        // SummaryByDayConfig.Data.Labels.Add();
+    }
+
+    private async Task LoadSummaryByTags()
+    {
+        TagChartConfig = new PieConfig
             {
                 Options = new PieOptions
                 {
@@ -20,27 +103,27 @@
                     Title = new OptionsTitle
                     {
                         Display = true,
-                        Text = "ChartJs.Blazor Pie Chart"
+                        Text = "Tasks by tag"
                     }
                 }
             };
 
-        foreach (string color in new[] { "Red", "Yellow", "Green", "Blue" })
-        {
-            _config.Data.Labels.Add(color);
-        }
+        var response = await httpClient.GetFromJsonAsync<List<SummaryByTagsResponse>>("/api/summary/tags");
 
-        PieDataset<int> dataset = new PieDataset<int>(new[] { 6, 5, 3, 7 })
+        Console.WriteLine("TAGS:");
+
+        response.ForEach(t => Console.WriteLine($"    Name: {t.Tag}, Color: {t.Color}, Count: {t.Count}"));
+
+        response.ForEach(t => TagChartConfig.Data.Labels.Add(t.Tag));
+
+        response.ForEach(t => Utils.ColorRecordFromHex(t.Color));
+
+        PieDataset<int> dataset = new PieDataset<int>(response.Select(t => t.Count))
             {
-                BackgroundColor = new[]
-                {
-            ColorUtil.ColorHexString(255, 99, 132), // Slice 1 aka "Red"
-            ColorUtil.ColorHexString(255, 205, 86), // Slice 2 aka "Yellow"
-            ColorUtil.ColorHexString(75, 192, 192), // Slice 3 aka "Green"
-            ColorUtil.ColorHexString(54, 162, 235), // Slice 4 aka "Blue"
-        }
+                BackgroundColor = new IndexableOption<string>(response.Select(t => ColorUtil.ColorHexString(Utils.ColorRecordFromHex(t.Color).r, Utils.ColorRecordFromHex(t.Color).g, Utils.ColorRecordFromHex(t.Color).b)).ToArray())
             };
 
-        _config.Data.Datasets.Add(dataset);
+        TagChartConfig.Data.Datasets.Add(dataset);
+
     }
 }
