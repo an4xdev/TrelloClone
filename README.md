@@ -16,7 +16,8 @@ The main point of the application will be project planning, just like in the ori
 - [ ] User:
   - [x] Adding if there is none in the application.
   - [ ] Editing
-  - [ ] The user can decide whether and when to receive notifications.
+  - [x] The user can decide whether and when to receive notifications.
+  - [x] The user decides whether to receive notifications today based on whether they are working on projects today. 
 - [x] Project:
   - [x] API:
     - [x] Adding
@@ -68,7 +69,11 @@ The main point of the application will be project planning, just like in the ori
 - [ ] Docker?
 - [ ] Moving to SQLite for better API design portability?
 - [ ] PWA?
-- [ ] Add a record of days when they do not want to receive notifications?
+- [ ] Default project?
+  - [ ] Don't show default project in lists?
+  - [ ] Prohibit deleting and modifying the default project?
+  - [ ] Show the default project only when entering a subpage with the project view directly?
+  - [ ] After directly switching to the project view, show the window for adding a new project/after the first change, ask about a new project?
 
 ## Requirements for use
 
