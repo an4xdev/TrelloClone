@@ -1,0 +1,49 @@
+﻿@inject IHttpClientFactory clientFactory
+
+<Modal @ref="modalRef">
+    <ModalContent>
+        <ModalHeader>
+            <ModalTitle>Set day as free</ModalTitle>
+        </ModalHeader>
+        <ModalBody>
+            <Text>Choose whether you are resting today?</Text>
+        </ModalBody>
+        <ModalFooter>
+            <Button Color="Color.Primary" Clicked="() => Clicked(false)">I'm working today</Button>
+            <Button Color="Color.Secondary" Clicked="() => Clicked(true)">I'm resting today</Button>
+        </ModalFooter>
+    </ModalContent>
+</Modal>
+
+@code {
+    private Modal modalRef;
+    [Inject] IToastService toastService { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        Console.WriteLine("    DayFreeComponent -> OnInitializedAsync()");
+        var httpClient = clientFactory.CreateClient("API");
+
+        var response = await httpClient.GetFromJsonAsync<DayFreeResponse>("/api/notification/free");
+
+        if (response.DayFreeType == DayFreeType.DayDontSet)
+        {
+            await modalRef.Show();
+        }
+    }
+
+    public async Task Clicked(bool value)
+    {
+        var httpClient = clientFactory.CreateClient("API");
+        var response = await httpClient.PostAsync($"/api/notification/{value}", null);
+        var content = await response.Content.ReadFromJsonAsync<DefaultResponse>();
+        if (content.IsSuccess)
+        {
+            await modalRef.Hide();
+            return;
+        }
+
+        await toastService.Error(content.Message);
+    }
+}

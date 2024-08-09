@@ -13,6 +13,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Tag> Tags { get; set; }
     public DbSet<ItemTag> ItemTags { get; set; }
 
+    public DbSet<DayFree> DayFrees { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

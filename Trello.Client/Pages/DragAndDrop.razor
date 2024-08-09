@@ -4,6 +4,11 @@
 @inject IHttpClientFactory clientFactory
 @inject ILoadingIndicatorService ApplicationLoadingIndicatorService
 @inject NavigationManager navigationManager
+
+<PageTitle>Project view</PageTitle>
+<AddUserComponent />
+<DayFreeComponent />
+
 @if (!(Items == null || Items.Count == 0 || ColumnModels == null || ColumnModels.Count == 0))
 {
     <Div Flex="Flex.AlignItems.Center.JustifyContent.Between">

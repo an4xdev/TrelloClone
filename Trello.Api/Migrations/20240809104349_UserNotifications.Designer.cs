@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Trello.Api.Database;
 
@@ -11,9 +12,11 @@ using Trello.Api.Database;
 namespace Trello.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240809104349_UserNotifications")]
+    partial class UserNotifications
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -68,25 +71,6 @@ namespace Trello.Api.Migrations
                             Name = "Done",
                             TemplateID = 1
                         });
-                });
-
-            modelBuilder.Entity("Trello.Api.Models.DayFree", b =>
-                {
-                    b.Property<int>("ID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"));
-
-                    b.Property<DateOnly>("Date")
-                        .HasColumnType("date");
-
-                    b.Property<bool>("IsFree")
-                        .HasColumnType("bit");
-
-                    b.HasKey("ID");
-
-                    b.ToTable("DayFrees");
                 });
 
             modelBuilder.Entity("Trello.Api.Models.Item", b =>

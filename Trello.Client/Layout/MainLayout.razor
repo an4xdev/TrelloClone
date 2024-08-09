@@ -17,6 +17,9 @@
 @code{
     private HttpClient httpClient;
     DateTime now;
+    bool IsSupportedByBrowser;
+    bool UserWantNotifications;
+    bool TodayDayIsFree;
 
     // https://timmoth.com/posts/ZF2d7lLLn0aU8eWX31Sbnw - MIT
 
@@ -24,29 +27,43 @@
 
     protected override async Task OnInitializedAsync()
     {
-        bool IsSupportedByBrowser = await NotificationService.IsSupportedByBrowserAsync();
+        httpClient = clientFactory.CreateClient("API");
+
+        UserWantNotifications = await httpClient.GetFromJsonAsync<bool>("/api/notification/user");
+
+        var response = await httpClient.GetFromJsonAsync<DayFreeResponse>("/api/notification/free");
+
+        TodayDayIsFree = response.DayFreeType == DayFreeType.DaySet && response.IsFree;
+
+        IsSupportedByBrowser = await NotificationService.IsSupportedByBrowserAsync();
 
         if (IsSupportedByBrowser)
         {
             PermissionType permission = await NotificationService.RequestPermissionAsync();
         }
 
-        httpClient = clientFactory.CreateClient("API");
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            CancellationTokenSource _timerCancellationToken = new();
-            // using var timer = new PeriodicTimer(TimeSpan.FromSeconds(10));
-            using var timer = new PeriodicTimer(TimeSpan.FromHours(1));
-            while (!_timerCancellationToken.IsCancellationRequested && await timer.WaitForNextTickAsync())
+            if(IsSupportedByBrowser && UserWantNotifications)
             {
-                now = DateTime.Now;
-                if(now.Hour == 18)
+                CancellationTokenSource _timerCancellationToken = new();
+                // using var timer = new PeriodicTimer(TimeSpan.FromSeconds(10));
+                using var timer = new PeriodicTimer(TimeSpan.FromHours(1));
+                while (!_timerCancellationToken.IsCancellationRequested && await timer.WaitForNextTickAsync())
                 {
-                    await NotificationService.CreateAsync("Notification", await httpClient.GetStringAsync("/api/notification"));
+
+                    var response = await httpClient.GetFromJsonAsync<DayFreeResponse>("/api/notification/free");
+
+                    TodayDayIsFree = response.DayFreeType == DayFreeType.DaySet && response.IsFree;
+                    now = DateTime.Now;
+                    if(now.Hour == 18 && !TodayDayIsFree)
+                    {
+                        await NotificationService.CreateAsync("Notification", await httpClient.GetStringAsync("/api/notification"));
+                    }
                 }
             }
         }

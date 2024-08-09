@@ -14,6 +14,7 @@
                 <FieldLabel>Username</FieldLabel>
                 <TextEdit Placeholder="Enter username..." @bind-Text="@model.UserName"/>
             </Field>
+            <Switch TValue="bool" @bind-Checked="model.Notifications">I want to receive notifications</Switch>
             <Field>
                 <FieldLabel>Profile picture</FieldLabel>
                 <FilePicker Upload="OnFileUpload" Filter="image/*" DisableProgressReport="true"/>

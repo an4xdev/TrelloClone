@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Trello.Api.Database;
+using Trello.Api.Models;
+using Trello.Shared.Responses;
 
 namespace Trello.Api.Controllers;
 
@@ -52,5 +54,87 @@ public class NotificationController(AppDbContext context) : ControllerBase
         }
 
         return await Task.FromResult($"Today you did some tasks 😁. Keep it up 😉. Your streak is: {counter}.");
+    }
+
+    [HttpGet("user")]
+    public async Task<bool> UserWantNotifications()
+    {
+        var user = await context.Users.FirstOrDefaultAsync();
+
+        if (user == null)
+        {
+            return await Task.FromResult(false);
+
+        }
+        return await Task.FromResult(user.Notifications);
+    }
+
+    [HttpGet("free")]
+    public async Task<DayFreeResponse> IsDayFree()
+    {
+        DayFreeResponse response = new();
+
+        var day = await context.DayFrees.FirstOrDefaultAsync();
+
+        if (day == null)
+        {
+            response.DayFreeType = DayFreeType.DayDontSet;
+            return await Task.FromResult(response);
+        }
+
+        DateOnly today = DateOnly.FromDateTime(DateTime.Now);
+
+        if (day.Date != today)
+        {
+            response.DayFreeType = DayFreeType.DayDontSet;
+            return await Task.FromResult(response);
+        }
+
+        response.DayFreeType = DayFreeType.DaySet;
+        response.IsFree = day.IsFree;
+
+        return await Task.FromResult(response);
+    }
+
+    [HttpPost("{free:bool}")]
+    public async Task<DefaultResponse> SetDay(bool free)
+    {
+        DefaultResponse response = new();
+        var day = await context.DayFrees.FirstOrDefaultAsync();
+
+        DateOnly today = DateOnly.FromDateTime(DateTime.Now);
+
+        if (day == null)
+        {
+            context.DayFrees.Add(new DayFree()
+            {
+                Date = today,
+                IsFree = free
+            });
+
+            if (await context.SaveChangesAsync() != 1)
+            {
+                response.IsSuccess = false;
+                response.Message = "An error occurred during setting free day.";
+                return await Task.FromResult(response);
+            }
+
+            response.IsSuccess = true;
+            return await Task.FromResult(response);
+        }
+
+        day.Date = today;
+        day.IsFree = free;
+
+        if (await context.SaveChangesAsync() != 1)
+        {
+            response.IsSuccess = false;
+            response.Message = "An error occurred during setting free day.";
+            return await Task.FromResult(response);
+        }
+
+        response.IsSuccess = true;
+
+        return await Task.FromResult(response);
     }
 }

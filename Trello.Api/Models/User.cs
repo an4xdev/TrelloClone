@@ -12,4 +12,6 @@ public class User
 
     [Required]
     public string ProfilePicture { get; set; } = string.Empty;
+
+    public bool Notifications { get; set; }
 }

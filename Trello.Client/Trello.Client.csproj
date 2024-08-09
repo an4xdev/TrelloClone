@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <Content Remove="Components\ChooseTagComponent.razor" />
+    <Content Remove="Components\User\Modal.razor" />
   </ItemGroup>
 
   <ItemGroup>
@@ -38,6 +39,7 @@
   <ItemGroup>
     <_ContentIncludedByDefault Remove="Components\ChooseTagComponent.razor" />
     <_ContentIncludedByDefault Remove="Components\Projects\EditProjectComponent.razor" />
+    <_ContentIncludedByDefault Remove="Components\User\Modal.razor" />
   </ItemGroup>
 
   <ItemGroup>
@@ -47,6 +49,10 @@
 
   <ItemGroup>
     <UpToDateCheckInput Remove="Components\ChooseTagComponent.razor" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <UpToDateCheckInput Remove="Components\User\Modal.razor" />
   </ItemGroup>
 
 </Project>
